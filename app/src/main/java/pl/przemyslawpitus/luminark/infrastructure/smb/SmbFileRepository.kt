@@ -22,11 +22,11 @@ import java.util.EnumSet
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val HOSTNAME = "<IP ADDRESS>"
-const val SHARE_NAME = "<SHARE>"
-const val USER = "<USER>"
-const val PASSWORD = "<PASSWORD>"
-const val DOMAIN = "<DOMAIN>"
+const val HOSTNAME = "192.168.0.69"
+const val SHARE_NAME = "Biblioteka"
+const val USER = "luminark"
+const val PASSWORD = "00uJIZexNH10cjs"
+const val DOMAIN = "BANANAS"
 
 private val IGNORED_FOLDERS = setOf(".", "..", "#recycle", "\$RECYCLE.BIN", "System Volume Information")
 

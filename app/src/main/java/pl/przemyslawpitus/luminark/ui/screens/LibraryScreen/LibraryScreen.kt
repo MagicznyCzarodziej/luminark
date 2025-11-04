@@ -29,7 +29,7 @@ fun LibraryScreen(
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
-                is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.Series.createRoute(event.filmSeriesId.id))
+                is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.FilmSeries.createRoute(event.filmSeriesId.id))
                 is NavigationEvent.ToMediaGrouping -> navController.navigate(Destination.MediaGrouping.createRoute(event.groupingId.id))
                 is NavigationEvent.ToSeries -> navController.navigate(Destination.Series.createRoute(event.seriesId.id))
             }

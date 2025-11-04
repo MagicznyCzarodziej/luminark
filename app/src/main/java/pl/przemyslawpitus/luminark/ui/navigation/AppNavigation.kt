@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import pl.przemyslawpitus.luminark.ui.screens.EpisodesScreen.EpisodesScreen
+import pl.przemyslawpitus.luminark.ui.screens.FilmSeriesScreen.FilmSeriesScreen
 import pl.przemyslawpitus.luminark.ui.screens.SeriesScreen.SeriesScreen
 import pl.przemyslawpitus.luminark.ui.screens.LibraryScreen.LibraryScreen
 import pl.przemyslawpitus.luminark.ui.screens.MediaGroupingScreen.MediaGroupingScreen
@@ -48,6 +49,12 @@ fun AppNavigation() {
             MediaGroupingScreen(
                 navController = navController,
             )
+        }
+        composable(
+            route = Destination.FilmSeries.route,
+            arguments = listOf(navArgument(Destination.FilmSeries.filmSeriesIdArg) { type = NavType.StringType })
+        ) {
+            FilmSeriesScreen()
         }
 
 //        composable("film-series/{seriesId}") { backStackEntry ->
