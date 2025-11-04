@@ -21,20 +21,24 @@ fun LibraryListEntry(
     index: Int,
     onEntryClick: (entry: TopLevelLibraryEntry) -> Unit,
 ) {
-    val component: @Composable () -> Unit = when (entry) {
-        is SeriesView -> ({ SeriesEntry(seriesView = entry) })
+    val isFocused = index == lastFocusedIndex
 
-        is FilmView -> ({ FilmEntry(filmView = entry) })
+    val component: @Composable () -> Unit = when (entry) {
+        is SeriesView -> ({ SeriesEntry(seriesView = entry, isFocused = isFocused) })
+
+        is FilmView -> ({ FilmEntry(filmView = entry, isFocused = isFocused) })
 
         is MediaGroupingView -> ({
             MediaGroupingEntry(
                 mediaGroupingView = entry,
+                isFocused = isFocused,
             )
         })
 
         is FilmSeriesView -> ({
             FilmSeriesEntry(
                 filmSeriesEntry = entry,
+                isFocused = isFocused,
             )
         })
 

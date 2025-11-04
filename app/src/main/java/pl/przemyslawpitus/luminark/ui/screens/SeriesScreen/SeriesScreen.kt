@@ -44,7 +44,7 @@ fun SeriesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF191A25)),
+                .background(Color(0xFF090A1A)),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(

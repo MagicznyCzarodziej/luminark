@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     shape = RectangleShape, // Use RectangleShape to fill the whole screen
                     colors = NonInteractiveSurfaceDefaults.colors(
-                        containerColor = Color(0xFF191A25)
+                        containerColor = Color(0xFF090A1A)
                     )
                 ) {
                     AppNavigation()

@@ -78,7 +78,7 @@ fun MediaGroupingScreen(
                                     viewModel.playVideo(entry.videoFiles.first().absolutePath)
                                 },
                             ) {
-                                FilmEntry(entry)
+                                FilmEntry(filmView = entry, isFocused = lastFocusedIndex == index)
                             }
                         }
 

@@ -66,6 +66,8 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.smbj)
     implementation(libs.snakeyaml)
+    implementation(libs.material.icons)
+
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")
     implementation(libs.androidx.navigation.compose.android)

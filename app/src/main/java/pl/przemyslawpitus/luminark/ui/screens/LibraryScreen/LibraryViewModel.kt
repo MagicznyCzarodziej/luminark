@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.EntryId
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
+import pl.przemyslawpitus.luminark.infrastructure.smb.SmbFileRepository
 import pl.przemyslawpitus.luminark.ui.FilmSeriesView
 import pl.przemyslawpitus.luminark.ui.FilmView
 import pl.przemyslawpitus.luminark.ui.MediaGroupingView
@@ -36,6 +37,7 @@ sealed class NavigationEvent {
 class LibraryViewModel @Inject constructor(
     private val videoPlayer: VideoPlayer,
     private val libraryRepository: LibraryRepository,
+    private val smbFileRepository: SmbFileRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = libraryRepository.entries
@@ -56,9 +58,22 @@ class LibraryViewModel @Inject constructor(
     private val _navigationEvent = Channel<NavigationEvent>()
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
+    private val _posterData = MutableStateFlow<ByteArray?>(null)
+    val posterData: StateFlow<ByteArray?> = _posterData
+
     init {
         viewModelScope.launch {
             libraryRepository.initialize()
+        }
+    }
+
+    fun loadPoster() {
+        println("Loading poster...")
+        viewModelScope.launch {
+           smbFileRepository.useReadFileStream("poster.jpg") { inputStream ->
+               _posterData.value = inputStream.readBytes()
+               println(_posterData.value)
+           }
         }
     }
 

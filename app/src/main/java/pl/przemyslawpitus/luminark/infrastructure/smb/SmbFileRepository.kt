@@ -22,11 +22,11 @@ import java.util.EnumSet
 import javax.inject.Inject
 import javax.inject.Singleton
 
-const val HOSTNAME = "192.168.0.69"
-const val SHARE_NAME = "Biblioteka"
-const val USER = "luminark"
-const val PASSWORD = "00uJIZexNH10cjs"
-const val DOMAIN = "BANANAS"
+const val HOSTNAME = "<IP ADDRESS>"
+const val SHARE_NAME = "<SHARE>"
+const val USER = "<USER>"
+const val PASSWORD = "<PASSWORD>"
+const val DOMAIN = "<DOMAIN>"
 
 private val IGNORED_FOLDERS = setOf(".", "..", "#recycle", "\$RECYCLE.BIN", "System Volume Information")
 
@@ -86,7 +86,6 @@ class SmbFileRepository @Inject constructor() : FilesLister {
                 println("File does not exist: $absolutePath")
                 return@withContext null
             }
-
             val accessMask = EnumSet.of(AccessMask.FILE_READ_DATA)
             val shareAccess = EnumSet.of(SMB2ShareAccess.FILE_SHARE_READ)
             val createDisposition = SMB2CreateDisposition.FILE_OPEN
