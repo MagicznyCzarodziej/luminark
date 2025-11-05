@@ -1,5 +1,6 @@
 package pl.przemyslawpitus.luminark.ui.screens.LibraryScreen
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,19 +12,23 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import pl.przemyslawpitus.luminark.R
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.EntryId
+import pl.przemyslawpitus.luminark.domain.library.FilmSeries
+import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
+import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
+import pl.przemyslawpitus.luminark.domain.library.Series
+import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
+import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbFileRepository
-import pl.przemyslawpitus.luminark.ui.FilmSeriesView
-import pl.przemyslawpitus.luminark.ui.FilmView
-import pl.przemyslawpitus.luminark.ui.MediaGroupingView
-import pl.przemyslawpitus.luminark.ui.SeriesView
-import pl.przemyslawpitus.luminark.ui.TopLevelLibraryEntry
+import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
+import java.nio.file.Paths
 import javax.inject.Inject
 
 data class LibraryUiState(
-    val entries: List<TopLevelLibraryEntry> = emptyList(),
+    val entries: List<ListEntryUiModel> = emptyList(),
     val isLoading: Boolean = true
 )
 
@@ -33,17 +38,46 @@ sealed class NavigationEvent {
     data class ToMediaGrouping(val groupingId: EntryId) : NavigationEvent()
 }
 
+const val LIBRARY_ROOT_PATH = "/Filmy"
+
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val videoPlayer: VideoPlayer,
     private val libraryRepository: LibraryRepository,
     private val smbFileRepository: SmbFileRepository,
+    private val posterProvider: ImageFilePosterProvider,
+    private val application: Application,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = libraryRepository.entries
         .map { entries ->
             LibraryUiState(
-                entries = entries,
+                entries = entries.map {
+                    ListEntryUiModel(
+                        name = it.name,
+                        type = when(it){
+                            is StandaloneFilm -> ListEntryUiModel.Type.Single
+                            is Series -> ListEntryUiModel.Type.Series(it.seasons.size)
+                            is MediaGrouping -> ListEntryUiModel.Type.Grouping(it.entries.size)
+                            is FilmSeries -> ListEntryUiModel.Type.PlayablesGroup(it.films.size)
+                            else -> {throw RuntimeException()}
+                        },
+                        onClick = {
+                            viewModelScope.launch {
+                                when (it) {
+                                    is Series -> _navigationEvent.send(NavigationEvent.ToSeries(it.id))
+
+                                    is StandaloneFilm -> videoPlayer.playVideo(it.videoFiles.first().absolutePath)
+
+                                    is MediaGrouping -> _navigationEvent.send(NavigationEvent.ToMediaGrouping(it.id))
+
+                                    is FilmSeries -> _navigationEvent.send(NavigationEvent.ToFilmSeries(it.id))
+                                }
+                            }
+                        },
+                        onFocus = { onEntryFocused(it) }
+                    )
+                },
                 isLoading = false
             )
         }
@@ -63,31 +97,25 @@ class LibraryViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            libraryRepository.initialize()
+            libraryRepository.initialize(Paths.get(LIBRARY_ROOT_PATH))
         }
     }
 
     fun loadPoster() {
-        println("Loading poster...")
-        viewModelScope.launch {
-           smbFileRepository.useReadFileStream("poster.jpg") { inputStream ->
-               _posterData.value = inputStream.readBytes()
-               println(_posterData.value)
-           }
-        }
+//        println("Loading poster...")
+//        viewModelScope.launch {
+//           smbFileRepository.useReadFileStream("poster.jpg") { inputStream ->
+//               _posterData.value = inputStream.readBytes()
+//           }
+//        }
     }
 
-    fun onEntryClick(entry: TopLevelLibraryEntry) {
+    private fun onEntryFocused(entry: LibraryEntry) {
+        val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
         viewModelScope.launch {
-            when (entry) {
-                is SeriesView -> _navigationEvent.send(NavigationEvent.ToSeries(entry.id))
-
-                is FilmView -> videoPlayer.playVideo(entry.videoFiles.first().absolutePath)
-
-                is MediaGroupingView -> _navigationEvent.send(NavigationEvent.ToMediaGrouping(entry.id))
-
-                is FilmSeriesView -> _navigationEvent.send(NavigationEvent.ToFilmSeries(entry.id))
-            }
+            _posterData.value = posterProvider.findPosterImage(
+                entry.rootRelativePath, supportedFileExtensions
+            )
         }
     }
 }

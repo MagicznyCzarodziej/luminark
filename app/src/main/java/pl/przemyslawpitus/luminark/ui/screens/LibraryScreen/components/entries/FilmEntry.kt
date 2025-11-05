@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
-import pl.przemyslawpitus.luminark.ui.FilmView
+import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun FilmEntry(
-    filmView: FilmView,
+    filmView: StandaloneFilm,
     isFocused: Boolean,
 ) {
     Row(

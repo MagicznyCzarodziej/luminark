@@ -3,15 +3,21 @@ package pl.przemyslawpitus.luminark.infrastructure.smb
 import android.content.Context
 import android.content.Intent
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
+import java.nio.file.Path
 
 class SmbVideoPlayer(
     private val smbFileRepository: SmbFileRepository,
     private val context: Context,
 ): VideoPlayer {
-    override fun playVideo(absolutePath: String) {
+    override fun playVideo(absolutePath: Path) {
         val basePath = smbFileRepository.getBasePath()
 
-        val fileUri = basePath.buildUpon().appendPath(absolutePath).build()
+        val fileUriBuilder = basePath.buildUpon()
+        absolutePath.forEach { segment ->
+            fileUriBuilder.appendPath(segment.toString())
+        }
+
+        val fileUri = fileUriBuilder.build()
 
         val intent = Intent().apply {
             action = Intent.ACTION_VIEW

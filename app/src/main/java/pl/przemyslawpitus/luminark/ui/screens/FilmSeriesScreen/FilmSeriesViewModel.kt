@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
+import pl.przemyslawpitus.luminark.domain.library.FilmSeries
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
-import pl.przemyslawpitus.luminark.ui.FilmSeriesView
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 import javax.inject.Inject
 
 data class FilmSeriesUiState(
-    val filmSeriesView: FilmSeriesView? = null,
+    val filmSeriesView: FilmSeries? = null,
     val isLoading: Boolean = true,
 )
 
@@ -41,7 +41,7 @@ class FilmSeriesViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             val filmSeriesView = libraryRepository.getTopLevelEntries()
-                .filterIsInstance<FilmSeriesView>()
+                .filterIsInstance<FilmSeries>()
                 .find { it.id.id == filmSeriesId }
 
             _uiState.value = FilmSeriesUiState(filmSeriesView = filmSeriesView, isLoading = false)

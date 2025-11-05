@@ -1,11 +1,11 @@
 package pl.przemyslawpitus.luminark.domain.library
 
 import kotlinx.coroutines.flow.Flow
-import pl.przemyslawpitus.luminark.ui.TopLevelLibraryEntry
+import java.nio.file.Path
 
 interface LibraryRepository {
-    val entries: Flow<List<TopLevelLibraryEntry>>
+    val entries: Flow<List<LibraryEntry>>
 
-    suspend fun initialize()
-    fun getTopLevelEntries(): List<TopLevelLibraryEntry>
+    suspend fun initialize(libraryRootPath: Path)
+    fun getTopLevelEntries(): List<LibraryEntry>
 }

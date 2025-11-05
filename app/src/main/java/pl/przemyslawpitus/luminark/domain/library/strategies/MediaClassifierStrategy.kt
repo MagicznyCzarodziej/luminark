@@ -2,8 +2,8 @@ package pl.przemyslawpitus.luminark.domain.library.strategies
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.FilesLister
-import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
+import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 
 interface MediaClassifierStrategy {
     fun isApplicable(context: ClassificationContext): Boolean
@@ -16,7 +16,7 @@ data class ClassificationContext(
     val videoFiles: List<DirectoryEntry>,
     val fileLister: FilesLister,
     val videoExtensions: Set<String>,
-    val lumiDirectoryConfig: LumiDirectoryConfig?
+    val lumiDirectoryConfig: LumiDirectoryConfig
 )
 
 internal sealed class ChildType {

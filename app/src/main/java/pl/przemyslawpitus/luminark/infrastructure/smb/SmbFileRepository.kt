@@ -16,11 +16,14 @@ import com.hierynomus.smbj.share.DiskShare
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
+import pl.przemyslawpitus.luminark.domain.FileRepository
 import pl.przemyslawpitus.luminark.domain.FilesLister
 import java.io.InputStream
+import java.nio.file.Path
 import java.util.EnumSet
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.io.path.pathString
 
 const val HOSTNAME = "<IP ADDRESS>"
 const val SHARE_NAME = "<SHARE>"
@@ -31,7 +34,7 @@ const val DOMAIN = "<DOMAIN>"
 private val IGNORED_FOLDERS = setOf(".", "..", "#recycle", "\$RECYCLE.BIN", "System Volume Information")
 
 @Singleton
-class SmbFileRepository @Inject constructor() : FilesLister {
+class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
 
     private val client = SMBClient()
     private var session: Session? = null
@@ -67,9 +70,9 @@ class SmbFileRepository @Inject constructor() : FilesLister {
         connection?.close()
     }
 
-    override fun listFilesAndDirectories(directoryAbsolutePath: String): List<DirectoryEntry> {
+    override fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry> {
         return try {
-            diskShare!!.list(directoryAbsolutePath)
+            diskShare!!.list(directoryAbsolutePath.pathString)
                 .filter { it.fileName !in IGNORED_FOLDERS }
                 .map { it.toSmbDirectoryEntry(directoryAbsolutePath) }
         } catch (e: SMBApiException) {
@@ -78,11 +81,11 @@ class SmbFileRepository @Inject constructor() : FilesLister {
         }
     }
 
-    suspend fun <T> useReadFileStream(absolutePath: String, block: (InputStream) -> T): T? =
+    override suspend fun <T> useReadFileStream(absolutePath: Path, block: (InputStream) -> T): T? =
         withContext(Dispatchers.IO) {
             val share = diskShare ?: return@withContext null
 
-            if (!share.fileExists(absolutePath)) {
+            if (!share.fileExists(absolutePath.pathString)) {
                 println("File does not exist: $absolutePath")
                 return@withContext null
             }
@@ -93,7 +96,7 @@ class SmbFileRepository @Inject constructor() : FilesLister {
 
             try {
                 share.openFile(
-                    absolutePath,
+                    absolutePath.pathString,
                     accessMask,
                     EnumSet.noneOf(FileAttributes::class.java),
                     shareAccess,
@@ -113,24 +116,17 @@ class SmbFileRepository @Inject constructor() : FilesLister {
 }
 
 private fun FileIdBothDirectoryInformation.toSmbDirectoryEntry(
-    absolutePath: String,
+    absolutePath: Path,
 ): SmbDirectoryEntry {
-    val entryAbsolutePath =
-        if (absolutePath.isEmpty()) {
-            this.fileName
-        } else {
-            "$absolutePath/${this.fileName}"
-        }
-
     return SmbDirectoryEntry(
         smbInfo = this,
-        absolutePath = entryAbsolutePath
+        absolutePath = absolutePath.resolve(this.fileName)
     )
 }
 
 class SmbDirectoryEntry(
     smbInfo: FileIdBothDirectoryInformation,
-    override val absolutePath: String,
+    override val absolutePath: Path,
 ) : DirectoryEntry {
     override val name: String = smbInfo.fileName
     override val isDirectory: Boolean = smbInfo.fileAttributes.and(FileAttributes.FILE_ATTRIBUTE_DIRECTORY.value) > 0

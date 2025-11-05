@@ -7,16 +7,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import pl.przemyslawpitus.luminark.domain.FilesLister
 import pl.przemyslawpitus.luminark.R
-import pl.przemyslawpitus.luminark.domain.LibraryProvider
+import pl.przemyslawpitus.luminark.domain.FileRepository
+import pl.przemyslawpitus.luminark.domain.FilesLister
+import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.LibraryParser
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
+import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.infrastructure.InMemoryLibraryRepository
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbFileRepository
-import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLibraryProvider
+import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLibraryBuilder
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLumiDirectoryConfigFileReader
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbVideoPlayer
 import javax.inject.Singleton
@@ -69,11 +71,11 @@ object HiltConfig {
 
     @Provides
     @Singleton
-    fun libraryProvider(
+    fun libraryBuilder(
         libraryParser: LibraryParser,
         smbFileRepository: SmbFileRepository,
-    ): LibraryProvider {
-        return SmbLibraryProvider(
+    ): LibraryBuilder {
+        return SmbLibraryBuilder(
             smbFileRepository = smbFileRepository,
             libraryParser = libraryParser
         )
@@ -94,10 +96,28 @@ object HiltConfig {
     @Provides
     @Singleton
     fun libraryRepository(
-        libraryProvider: LibraryProvider
+        libraryBuilder: LibraryBuilder
     ): LibraryRepository {
         return InMemoryLibraryRepository(
-            libraryProvider = libraryProvider,
+            libraryBuilder = libraryBuilder,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun fileRepository(
+        smbFileRepository: SmbFileRepository,
+        ): FileRepository {
+        return smbFileRepository
+    }
+
+    @Provides
+    @Singleton
+    fun imageFilePosterProvider(
+        fileRepository: FileRepository,
+    ): ImageFilePosterProvider {
+        return ImageFilePosterProvider(
+            fileRepository = fileRepository,
         )
     }
 }

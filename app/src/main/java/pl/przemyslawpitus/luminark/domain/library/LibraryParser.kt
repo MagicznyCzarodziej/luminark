@@ -2,13 +2,14 @@ package pl.przemyslawpitus.luminark.domain.library
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.FilesLister
-import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
 import pl.przemyslawpitus.luminark.domain.library.strategies.ClassificationContext
 import pl.przemyslawpitus.luminark.domain.library.strategies.FilmSeriesStrategy
-import pl.przemyslawpitus.luminark.domain.library.strategies.FilmStrategy
 import pl.przemyslawpitus.luminark.domain.library.strategies.MediaClassifierStrategy
 import pl.przemyslawpitus.luminark.domain.library.strategies.MediaGroupingStrategy
 import pl.przemyslawpitus.luminark.domain.library.strategies.SeriesStrategy
+import pl.przemyslawpitus.luminark.domain.library.strategies.StandaloneFilmStrategy
+import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
+import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
 
 class LibraryParser(
     private val fileLister: FilesLister,
@@ -19,7 +20,7 @@ class LibraryParser(
     // should be evaluated before more general ones (like Series).
     private val strategies: List<MediaClassifierStrategy> = listOf(
         FilmSeriesStrategy(),
-        FilmStrategy(),
+        StandaloneFilmStrategy(),
         MediaGroupingStrategy(),
         SeriesStrategy(),
     )
@@ -30,7 +31,13 @@ class LibraryParser(
         val videoFiles = children.filter { it.isFile && FileNameParser.isVideoFile(it.name, videoExtensions) }
         val subdirectories = children.filter { it.isDirectory }
 
-        val lumiDirectoryConfig = lumiDirectoryConfigProvider.getLumiDirectoryConfigForDirectory(directory.absolutePath)
+        val lumiDirectoryConfig = lumiDirectoryConfigProvider
+            .getLumiDirectoryConfigForDirectory(directory.absolutePath)
+            ?: LumiDirectoryConfig(
+                type = null,
+                franchise = null,
+                tags = emptySet(),
+            )
 
         val context = ClassificationContext(
             directory = directory,

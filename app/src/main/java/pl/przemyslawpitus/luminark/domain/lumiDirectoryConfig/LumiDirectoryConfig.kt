@@ -1,9 +1,11 @@
 package pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig
 
+import pl.przemyslawpitus.luminark.domain.library.Franchise
+
 data class LumiDirectoryConfig(
-    val type: Type? = null,
-    val franchise: String? = null,
-    val tags: List<String>? = null,
+    val type: Type?,
+    val franchise: Franchise?,
+    val tags: Set<String>,
 ) {
     enum class Type {
         FILM_SERIES

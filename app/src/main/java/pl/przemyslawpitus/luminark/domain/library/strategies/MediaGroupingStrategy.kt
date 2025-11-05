@@ -1,11 +1,13 @@
 package pl.przemyslawpitus.luminark.domain.library.strategies
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
-import pl.przemyslawpitus.luminark.domain.library.Film
+import pl.przemyslawpitus.luminark.domain.library.Episode
+import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.FileNameParser
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
-import pl.przemyslawpitus.luminark.domain.library.Series
+import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
+import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.domain.library.VideoFile
 import pl.przemyslawpitus.luminark.randomEntryId
 
@@ -37,19 +39,23 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         return MediaGrouping(
             id = randomEntryId(),
             name = FileNameParser.parseName(context.directory.name),
+            rootRelativePath = context.directory.absolutePath,
+            tags = context.lumiDirectoryConfig.tags,
+            franchise = context.lumiDirectoryConfig.franchise,
             entries = entries
         )
     }
 
-    private fun processFilm(context: ClassificationContext, filmDir: DirectoryEntry): Film {
+    private fun processFilm(context: ClassificationContext, filmDir: DirectoryEntry): MediaGroupingFilm {
         val videoFiles = context.fileLister.listFilesAndDirectories(filmDir.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
-            .map { VideoFile(name = it.name, it.absolutePath) }
-            .sortedBy { it.name }
+            .map { VideoFile(name = Name(it.name), it.absolutePath) }
+            .sortedBy { it.name.name }
 
-        return Film(
+        return MediaGroupingFilm(
             id = randomEntryId(),
             name = FileNameParser.parseName(filmDir.name),
+            rootRelativePath = filmDir.absolutePath,
             videoFiles = videoFiles
         )
     }
@@ -58,7 +64,7 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         context: ClassificationContext,
         seasonDir: DirectoryEntry,
         fallbackNumber: Int
-    ): Series.Season? {
+    ): EpisodesGroup? {
         val episodeFiles = context.fileLister.listFilesAndDirectories(seasonDir.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
 
@@ -68,24 +74,26 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         val seasonNumberFromEpisode =
             episodeFiles.firstNotNullOfOrNull { FileNameParser.extractSeasonNumberFromEpisode(it.name) }
 
-        val episodes =
-            episodeFiles.mapNotNull { parseEpisode(it, context.videoExtensions) }.sortedBy { it.ordinalNumber }
+        val episodes = episodeFiles
+            .map { parseEpisode(it, context.videoExtensions) }
+            .sortedBy { it.ordinalNumber }
 
-        return Series.Season(
+        return EpisodesGroup(
             id = randomEntryId(),
+            name = Name(seasonDir.name),
+            rootRelativePath = seasonDir.absolutePath,
             ordinalNumber = seasonNumberFromName ?: seasonNumberFromEpisode ?: fallbackNumber,
-            name = seasonDir.name,
             episodes = episodes
         )
     }
 
-    private fun parseEpisode(file: DirectoryEntry, videoExtensions: Set<String>): Series.Episode {
+    private fun parseEpisode(file: DirectoryEntry, videoExtensions: Set<String>): Episode {
         val details = FileNameParser.parseEpisodeDetails(file.name, videoExtensions)
-        return Series.Episode(
+        return Episode(
             id = randomEntryId(),
+            name = Name(details.title),
+            rootRelativePath = file.absolutePath,
             ordinalNumber = details.number,
-            name = details.title,
-            absolutePath = file.absolutePath
         )
     }
 

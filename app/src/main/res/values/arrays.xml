@@ -14,4 +14,11 @@
         <item>mpeg</item>
     </string-array>
 
+    <string-array name="poster_image_extensions">
+        <item>jpg</item>
+        <item>png</item>
+        <item>jpeg</item>
+        <item>bmp</item>
+    </string-array>
+
 </resources>

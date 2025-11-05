@@ -27,9 +27,9 @@ import androidx.navigation.NavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import pl.przemyslawpitus.luminark.ui.components.EntriesList.EntriesList
+import pl.przemyslawpitus.luminark.ui.components.Poster.Poster
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
-import pl.przemyslawpitus.luminark.ui.screens.LibraryScreen.components.LibraryList
-import pl.przemyslawpitus.luminark.ui.screens.components.Poster.Poster
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -140,10 +140,16 @@ fun LibraryScreen(
                     )
 
                 }
-                LibraryList(
+                EntriesList(
                     entries = uiState.entries,
-                    onEntryClick = viewModel::onEntryClick
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
                 )
+//
+//                LibraryList(
+//                    entries = uiState.entries,
+//                    onEntryClick = viewModel::onEntryClick,
+//                    onFocusedEntryChange = viewModel::onEntryFocused,
+//                )
             }
         }
 

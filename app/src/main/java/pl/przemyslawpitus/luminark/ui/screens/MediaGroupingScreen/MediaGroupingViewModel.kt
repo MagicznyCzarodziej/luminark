@@ -1,5 +1,6 @@
 package pl.przemyslawpitus.luminark.ui.screens.MediaGroupingScreen
 
+import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,16 +10,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import pl.przemyslawpitus.luminark.R
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.EntryId
+import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
-import pl.przemyslawpitus.luminark.ui.MediaGroupingView
-import pl.przemyslawpitus.luminark.ui.SeasonView
+import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
+import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
+import pl.przemyslawpitus.luminark.domain.library.Name
+import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
+import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 import javax.inject.Inject
 
 data class MediaGroupingUiState(
-    val mediaGrouping: MediaGroupingView? = null,
+    val entries: List<ListEntryUiModel>? = null,
+    val name: Name? = null,
+    val tags: Set<String> = emptySet(),
+    val posterBytes: ByteArray? = null,
+    val breadcrumbs: String? = null,
     val isLoading: Boolean = true,
 )
 
@@ -26,10 +36,11 @@ sealed class NavigationEvent {
     data class ToMediaGroupingSeason(val seasonId: EntryId) : NavigationEvent()
 }
 
-
 @HiltViewModel
 class MediaGroupingViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
+    private val posterProvider: ImageFilePosterProvider,
+    private val application: Application,
     savedStateHandle: SavedStateHandle,
     videoPlayer: VideoPlayer,
 ) : ViewModel(),
@@ -53,16 +64,51 @@ class MediaGroupingViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             val mediaGrouping = libraryRepository.getTopLevelEntries()
-                .filterIsInstance<MediaGroupingView>()
+                .filterIsInstance<MediaGrouping>()
                 .find { it.id.id == mediaGroupingId }
 
-            _uiState.value = MediaGroupingUiState(mediaGrouping = mediaGrouping, isLoading = false)
+            val entries = mediaGrouping!!.entries.map {
+                when (it) {
+                    is EpisodesGroup -> ListEntryUiModel(
+                        name = it.name,
+                        type = ListEntryUiModel.Type.PlayablesGroup(it.episodes.size),
+                        onClick = { onMediaGroupingSeasonClick(it) },
+                        onFocus = { }
+                    )
+
+                    is MediaGroupingFilm -> ListEntryUiModel(
+                        name = it.name,
+                        type = ListEntryUiModel.Type.Single,
+                        onClick = { playVideo(it.rootRelativePath) },
+                        onFocus = { }
+                    )
+
+                    else -> {
+                        throw RuntimeException()
+                    }
+                }
+            }
+
+            val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
+
+            val posterBytes = posterProvider.findPosterImage(
+                mediaGrouping.rootRelativePath, supportedFileExtensions
+            )
+
+            _uiState.value = MediaGroupingUiState(
+                entries = entries,
+                posterBytes = posterBytes,
+                isLoading = false,
+                name = mediaGrouping.name,
+                breadcrumbs = "Biblioteka",
+                tags = emptySet(),
+            )
         }
     }
 
-    fun onMediaGroupingSeasonClick(season: SeasonView) {
+    fun onMediaGroupingSeasonClick(season: EpisodesGroup) {
         viewModelScope.launch {
-           _navigationEvent.send(NavigationEvent.ToMediaGroupingSeason(season.id))
+            _navigationEvent.send(NavigationEvent.ToMediaGroupingSeason(season.id))
         }
     }
 }

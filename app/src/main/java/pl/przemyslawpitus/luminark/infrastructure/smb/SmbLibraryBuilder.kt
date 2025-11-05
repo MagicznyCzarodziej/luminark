@@ -4,19 +4,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import pl.przemyslawpitus.luminark.domain.LibraryProvider
+import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.Library
 import pl.przemyslawpitus.luminark.domain.library.LibraryParser
 import pl.przemyslawpitus.luminark.domain.library.NaturalOrderComparator
+import java.nio.file.Path
 
-class SmbLibraryProvider(
+class SmbLibraryBuilder(
     private val smbFileRepository: SmbFileRepository,
     private val libraryParser: LibraryParser,
-) : LibraryProvider {
-    override suspend fun getLibrary(): Library = withContext(Dispatchers.IO) {
+) : LibraryBuilder {
+    override suspend fun buildLibraryFrom(rootLibraryPath: Path): Library = withContext(Dispatchers.IO) {
         smbFileRepository.connectToShare() // TODO
 
-        val rootDirs = smbFileRepository.listFilesAndDirectories("Filmy")
+        val rootDirs = smbFileRepository.listFilesAndDirectories(rootLibraryPath)
             .filter { it.isDirectory }
             .sortedWith(compareBy(NaturalOrderComparator) { it.name })
 

@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
-import pl.przemyslawpitus.luminark.ui.MediaGroupingView
+import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun MediaGroupingEntry(
-    mediaGroupingView: MediaGroupingView,
+    mediaGroupingView: MediaGrouping,
     isFocused: Boolean,
 ) {
     Row(
