@@ -1,13 +1,14 @@
-package pl.przemyslawpitus.luminark.domain.library
+package pl.przemyslawpitus.luminark.domain.library.building
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.FilesLister
-import pl.przemyslawpitus.luminark.domain.library.strategies.ClassificationContext
-import pl.przemyslawpitus.luminark.domain.library.strategies.FilmSeriesStrategy
-import pl.przemyslawpitus.luminark.domain.library.strategies.MediaClassifierStrategy
-import pl.przemyslawpitus.luminark.domain.library.strategies.MediaGroupingStrategy
-import pl.przemyslawpitus.luminark.domain.library.strategies.SeriesStrategy
-import pl.przemyslawpitus.luminark.domain.library.strategies.StandaloneFilmStrategy
+import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.ClassificationContext
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.FilmSeriesStrategy
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.MediaClassifierStrategy
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.MediaGroupingStrategy
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.SeriesStrategy
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.StandaloneFilmStrategy
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
 

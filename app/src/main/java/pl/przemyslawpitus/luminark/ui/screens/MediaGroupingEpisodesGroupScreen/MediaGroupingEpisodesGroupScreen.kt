@@ -1,4 +1,4 @@
-package pl.przemyslawpitus.luminark.ui.screens.EpisodesScreen
+package pl.przemyslawpitus.luminark.ui.screens.MediaGroupingEpisodesGroupScreen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -8,8 +8,8 @@ import pl.przemyslawpitus.luminark.ui.layouts.ListWithPosterLayout.ListWithPoste
 import pl.przemyslawpitus.luminark.ui.layouts.ListWithPosterLayout.ListWithPosterLayoutProps
 
 @Composable
-fun EpisodesScreen() {
-    val viewModel: EpisodesViewModel = hiltViewModel()
+fun MediaGroupingEpisodesGroupScreen() {
+    val viewModel: MediaGroupingEpisodesGroupViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
     ListWithPosterLayout(

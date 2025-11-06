@@ -30,7 +30,7 @@ fun Poster(
             Image(
                 bitmap = imageBitmap,
                 contentDescription = null,
-                contentScale = ContentScale.FillHeight,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxHeight()
             )
             Spacer(
@@ -47,6 +47,6 @@ fun Poster(
             )
         }
     } else {
-        // TODO placeholder
+        Box(modifier = modifier) { }
     }
 }

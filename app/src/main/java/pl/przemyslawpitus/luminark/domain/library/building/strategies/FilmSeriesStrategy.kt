@@ -1,12 +1,12 @@
-package pl.przemyslawpitus.luminark.domain.library.strategies
+package pl.przemyslawpitus.luminark.domain.library.building.strategies
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
-import pl.przemyslawpitus.luminark.domain.library.FileNameParser
 import pl.przemyslawpitus.luminark.domain.library.FilmSeries
 import pl.przemyslawpitus.luminark.domain.library.FilmSeriesFilm
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.domain.library.VideoFile
+import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 import pl.przemyslawpitus.luminark.randomEntryId
 

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -47,9 +48,9 @@ fun LibraryScreen(
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
-                is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.FilmSeries.createRoute(event.filmSeriesId.id))
-                is NavigationEvent.ToMediaGrouping -> navController.navigate(Destination.MediaGrouping.createRoute(event.groupingId.id))
-                is NavigationEvent.ToSeries -> navController.navigate(Destination.Series.createRoute(event.seriesId.id))
+                is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.FilmSeries(event.filmSeriesId.id))
+                is NavigationEvent.ToMediaGrouping -> navController.navigate(Destination.MediaGrouping(event.groupingId.id))
+                is NavigationEvent.ToSeries -> navController.navigate(Destination.Series(event.seriesId.id))
             }
         }
     }
@@ -65,7 +66,7 @@ fun LibraryScreen(
         Row(
             modifier = Modifier.fillMaxSize(),
         ) {
-            Poster(posterData)
+            Poster(posterData, Modifier.fillMaxWidth(0.37f))
             Column {
                 Row(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp),

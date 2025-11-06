@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,17 +38,17 @@ class EpisodesViewModel @Inject constructor(
 ) : ViewModel(),
     VideoPlayer by videoPlayer {
 
+    private val route = savedStateHandle.toRoute<Destination.EpisodesGroup>()
+    private val episodesGroupId = route.episodesGroupId
+
     private val _uiState = MutableStateFlow(EpisodesUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        val seasonId: String? = savedStateHandle[Destination.Season.seasonIdArg]
-        if (seasonId != null) {
-            loadSeason(seasonId)
-        }
+        loadEpisodesGroup(episodesGroupId)
     }
 
-    private fun loadSeason(seasonId: String) {
+    private fun loadEpisodesGroup(seasonId: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 

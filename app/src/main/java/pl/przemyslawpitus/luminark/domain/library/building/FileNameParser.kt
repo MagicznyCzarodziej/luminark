@@ -1,5 +1,6 @@
-package pl.przemyslawpitus.luminark.domain.library
+package pl.przemyslawpitus.luminark.domain.library.building
 
+import pl.przemyslawpitus.luminark.domain.library.Name
 import java.util.Locale
 import java.util.regex.Pattern
 

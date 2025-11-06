@@ -1,4 +1,4 @@
-package pl.przemyslawpitus.luminark.domain.library.strategies
+package pl.przemyslawpitus.luminark.domain.library.building.strategies
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.FilesLister

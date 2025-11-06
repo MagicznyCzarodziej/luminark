@@ -22,7 +22,6 @@ import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
 import pl.przemyslawpitus.luminark.domain.library.Series
 import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
 import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
-import pl.przemyslawpitus.luminark.infrastructure.smb.SmbFileRepository
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -44,7 +43,6 @@ const val LIBRARY_ROOT_PATH = "/Filmy"
 class LibraryViewModel @Inject constructor(
     private val videoPlayer: VideoPlayer,
     private val libraryRepository: LibraryRepository,
-    private val smbFileRepository: SmbFileRepository,
     private val posterProvider: ImageFilePosterProvider,
     private val application: Application,
 ) : ViewModel() {

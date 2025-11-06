@@ -12,8 +12,8 @@ import pl.przemyslawpitus.luminark.domain.FileRepository
 import pl.przemyslawpitus.luminark.domain.FilesLister
 import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
-import pl.przemyslawpitus.luminark.domain.library.LibraryParser
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
+import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
 import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.infrastructure.InMemoryLibraryRepository

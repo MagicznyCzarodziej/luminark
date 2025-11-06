@@ -1,25 +1,23 @@
 package pl.przemyslawpitus.luminark.ui.navigation
 
-sealed class Destination(val route: String) {
-    data object Library : Destination(route = "library")
+import kotlinx.serialization.Serializable
 
-    data object Series : Destination(route = "series/{seriesId}") {
-        const val seriesIdArg = "seriesId"
-        fun createRoute(seriesId: String) = "series/$seriesId"
-    }
+class Destination {
+    @Serializable
+    data object Library
 
-    data object Season : Destination(route = "season/{seasonId}") {
-        const val seasonIdArg = "seasonId"
-        fun createRoute(seasonId: String) = "season/$seasonId"
-    }
+    @Serializable
+    data class Series(val seriesId: String)
 
-    data object FilmSeries : Destination(route = "film-series/{filmSeriesId}") {
-        const val filmSeriesIdArg = "filmSeriesId"
-        fun createRoute(filmSeriesId: String) = "film-series/$filmSeriesId"
-    }
+    @Serializable
+    data class EpisodesGroup(val episodesGroupId: String)
 
-    data object MediaGrouping : Destination(route = "media-grouping/{groupingId}") {
-        const val groupingIdArg = "groupingId"
-        fun createRoute(groupingId: String) = "media-grouping/$groupingId"
-    }
+    @Serializable
+    data class FilmSeries(val filmSeriesId: String)
+
+    @Serializable
+    data class MediaGrouping(val mediaGroupingId: String)
+
+    @Serializable
+    data class MediaGroupingEpisodesGroup(val mediaGroupingId: String, val episodesGroupId: String)
 }

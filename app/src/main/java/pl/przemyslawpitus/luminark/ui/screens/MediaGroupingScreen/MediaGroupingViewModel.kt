@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +34,8 @@ data class MediaGroupingUiState(
 )
 
 sealed class NavigationEvent {
-    data class ToMediaGroupingSeason(val seasonId: EntryId) : NavigationEvent()
+    data class ToMediaGroupingEpisodesGroup(val mediaGroupingId: EntryId, val episodesGroupId: EntryId) :
+        NavigationEvent()
 }
 
 @HiltViewModel
@@ -46,6 +48,9 @@ class MediaGroupingViewModel @Inject constructor(
 ) : ViewModel(),
     VideoPlayer by videoPlayer {
 
+    private val route = savedStateHandle.toRoute<Destination.MediaGrouping>()
+    private val mediaGroupingId = route.mediaGroupingId
+
     private val _uiState = MutableStateFlow(MediaGroupingUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -53,10 +58,7 @@ class MediaGroupingViewModel @Inject constructor(
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
     init {
-        val mediaGroupingId: String? = savedStateHandle[Destination.MediaGrouping.groupingIdArg]
-        if (mediaGroupingId != null) {
-            loadMediaGrouping(mediaGroupingId)
-        }
+        loadMediaGrouping(mediaGroupingId)
     }
 
     private fun loadMediaGrouping(mediaGroupingId: String) {
@@ -72,7 +74,7 @@ class MediaGroupingViewModel @Inject constructor(
                     is EpisodesGroup -> ListEntryUiModel(
                         name = it.name,
                         type = ListEntryUiModel.Type.PlayablesGroup(it.episodes.size),
-                        onClick = { onMediaGroupingSeasonClick(it) },
+                        onClick = { onMediaGroupingEpisodesGroupClick(mediaGrouping.id, it.id) },
                         onFocus = { }
                     )
 
@@ -106,9 +108,9 @@ class MediaGroupingViewModel @Inject constructor(
         }
     }
 
-    fun onMediaGroupingSeasonClick(season: EpisodesGroup) {
+    private fun onMediaGroupingEpisodesGroupClick(mediaGroupingId: EntryId, episodesGroupId: EntryId) {
         viewModelScope.launch {
-            _navigationEvent.send(NavigationEvent.ToMediaGroupingSeason(season.id))
+            _navigationEvent.send(NavigationEvent.ToMediaGroupingEpisodesGroup(mediaGroupingId, episodesGroupId))
         }
     }
 }

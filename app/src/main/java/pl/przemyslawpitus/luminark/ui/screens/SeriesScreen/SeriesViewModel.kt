@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,9 @@ class SeriesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    private val route = savedStateHandle.toRoute<Destination.Series>()
+    private val seriesId = route.seriesId
+
     private val _uiState = MutableStateFlow(SeriesUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -47,10 +51,7 @@ class SeriesViewModel @Inject constructor(
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
     init {
-        val seriesId: String? = savedStateHandle[Destination.Series.seriesIdArg]
-        if (seriesId != null) {
-            loadSeries(seriesId)
-        }
+        loadSeries(seriesId)
     }
 
     private fun loadSeries(seriesId: String) {

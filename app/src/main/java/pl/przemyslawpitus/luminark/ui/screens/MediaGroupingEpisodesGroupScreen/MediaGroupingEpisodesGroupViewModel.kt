@@ -1,4 +1,4 @@
-package pl.przemyslawpitus.luminark.ui.screens.FilmSeriesScreen
+package pl.przemyslawpitus.luminark.ui.screens.MediaGroupingEpisodesGroupScreen
 
 import android.app.Application
 import androidx.lifecycle.SavedStateHandle
@@ -11,15 +11,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.R
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
-import pl.przemyslawpitus.luminark.domain.library.FilmSeries
+import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
+import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
 import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 import javax.inject.Inject
 
-data class FilmSeriesUiState(
+data class MediaGroupingEpisodesGroupUiState(
     val entries: List<ListEntryUiModel>? = null,
     val name: Name? = null,
     val tags: Set<String> = emptySet(),
@@ -27,8 +28,9 @@ data class FilmSeriesUiState(
     val breadcrumbs: String? = null,
     val isLoading: Boolean = true,
 )
+
 @HiltViewModel
-class FilmSeriesViewModel @Inject constructor(
+class MediaGroupingEpisodesGroupViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
     private val posterProvider: ImageFilePosterProvider,
     private val application: Application,
@@ -37,29 +39,34 @@ class FilmSeriesViewModel @Inject constructor(
 ) : ViewModel(),
     VideoPlayer by videoPlayer {
 
-    private val route = savedStateHandle.toRoute<Destination.FilmSeries>()
-    private val filmSeriesId = route.filmSeriesId
+    private val route = savedStateHandle.toRoute<Destination.MediaGroupingEpisodesGroup>()
+    private val mediaGroupingId = route.mediaGroupingId
+    private val episodesGroupId = route.episodesGroupId
 
-    private val _uiState = MutableStateFlow(FilmSeriesUiState())
+    private val _uiState = MutableStateFlow(MediaGroupingEpisodesGroupUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        loadFilmSeries(filmSeriesId)
+        loadEpisodesGroup(episodesGroupId)
     }
 
-    private fun loadFilmSeries(filmSeriesId: String) {
+    private fun loadEpisodesGroup(episodesGroupId: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            val filmSeries = libraryRepository.getTopLevelEntries()
-                .filterIsInstance<FilmSeries>()
-                .find { it.id.id == filmSeriesId }
+            val mediaGrouping = libraryRepository.getTopLevelEntries()
+                .filterIsInstance<MediaGrouping>()
+                .find { it.id.id == mediaGroupingId}!!
 
-            val entries = filmSeries!!.films.map {
+            val mediaGroupingEpisodesGroup = mediaGrouping.entries
+                .filterIsInstance<EpisodesGroup>()
+                .find { it.id.id == episodesGroupId }
+
+            val entries = mediaGroupingEpisodesGroup!!.episodes.map {
                 ListEntryUiModel(
                     name = it.name,
                     type = ListEntryUiModel.Type.Single,
-                    onClick = { playVideo(it.videoFiles.first().absolutePath) },
+                    onClick = { playVideo(it.rootRelativePath) },
                     onFocus = { }
                 )
             }
@@ -67,15 +74,15 @@ class FilmSeriesViewModel @Inject constructor(
             val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
 
             val posterBytes = posterProvider.findPosterImage(
-                filmSeries.rootRelativePath, supportedFileExtensions
+                mediaGroupingEpisodesGroup.rootRelativePath, supportedFileExtensions
             )
 
-            _uiState.value = FilmSeriesUiState(
+            _uiState.value = MediaGroupingEpisodesGroupUiState(
                 entries = entries,
                 posterBytes = posterBytes,
                 isLoading = false,
-                name = filmSeries.name,
-                breadcrumbs = "Biblioteka / ${filmSeries.name.name}",
+                name = mediaGroupingEpisodesGroup.name,
+                breadcrumbs = "Biblioteka / ${mediaGrouping.name.name}",
                 tags = emptySet(),
             )
         }

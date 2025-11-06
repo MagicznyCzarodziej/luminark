@@ -6,8 +6,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.Library
-import pl.przemyslawpitus.luminark.domain.library.LibraryParser
-import pl.przemyslawpitus.luminark.domain.library.NaturalOrderComparator
+import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
+import pl.przemyslawpitus.luminark.domain.utils.NaturalOrderComparator
 import java.nio.file.Path
 
 class SmbLibraryBuilder(

@@ -6,11 +6,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Text
 import pl.przemyslawpitus.luminark.ui.layouts.ListWithPosterLayout.ListWithPosterLayout
+import pl.przemyslawpitus.luminark.ui.layouts.ListWithPosterLayout.ListWithPosterLayoutProps
+import pl.przemyslawpitus.luminark.ui.navigation.Destination
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun MediaGroupingScreen(
     navController: NavController,
@@ -21,21 +20,26 @@ fun MediaGroupingScreen(
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
-                is NavigationEvent.ToMediaGroupingSeason -> println("TODO Navigate to new screen ${event.seasonId}") // TODO
+                is NavigationEvent.ToMediaGroupingEpisodesGroup -> navController.navigate(
+                    Destination.MediaGroupingEpisodesGroup(
+                        event.mediaGroupingId.id,
+                        event.episodesGroupId.id,
+                    )
+                )
             }
         }
     }
 
-    if (uiState.isLoading) {
-        Text("Loading...")
-    } else {
+    if (!uiState.isLoading) {
         ListWithPosterLayout(
-            posterData = uiState.posterBytes,
-            entries = uiState.entries!!,
-            title = uiState.name!!.name,
-            subtitle = uiState.name!!.alternativeName,
-            breadcrumbs = uiState.breadcrumbs!!,
-            tags = uiState.tags,
+            ListWithPosterLayoutProps(
+                posterData = uiState.posterBytes,
+                entries = uiState.entries!!,
+                title = uiState.name!!.name,
+                subtitle = uiState.name!!.alternativeName,
+                breadcrumbs = uiState.breadcrumbs!!,
+                tags = uiState.tags,
+            )
         )
     }
 }

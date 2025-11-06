@@ -1,42 +1,62 @@
-package pl.przemyslawpitus.luminark.domain.library.strategies
+package pl.przemyslawpitus.luminark.domain.library.building.strategies
 
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.library.Episode
 import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
-import pl.przemyslawpitus.luminark.domain.library.FileNameParser
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
+import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
+import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
 import pl.przemyslawpitus.luminark.domain.library.Name
-import pl.przemyslawpitus.luminark.domain.library.Series
+import pl.przemyslawpitus.luminark.domain.library.VideoFile
+import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.randomEntryId
 
-class SeriesStrategy : MediaClassifierStrategy {
+class MediaGroupingStrategy : MediaClassifierStrategy {
     override fun isApplicable(context: ClassificationContext): Boolean {
-        // A directory is a potential Series if it contains subfolders and no videos at the top level.
+        // A directory is a potential MediaGrouping if it contains subfolders and no videos at the top level.
         if (context.videoFiles.isNotEmpty() || context.subdirectories.isEmpty()) {
             return false
         }
 
-        // To be a Series, it must NOT qualify as a MediaGrouping (i.e., it doesn't contain a mix of content).
+        // To be a MediaGrouping, it MUST contain a mix of film-like and season-like folders.
         val childTypes = context.subdirectories.map { classifySubdirectory(context, it) }
         val containsFilms = childTypes.any { it is ChildType.Film }
         val containsSeasons = childTypes.any { it is ChildType.Season }
 
-        // It's a series if it contains seasons and does NOT contain films.
-        return containsSeasons && !containsFilms
+        return containsFilms && containsSeasons
     }
 
     override fun classify(context: ClassificationContext): LibraryEntry {
-        val seasons = context.subdirectories.mapIndexedNotNull { index, seasonDir ->
-            processSeason(context, seasonDir, index + 1)
+        val childTypes = context.subdirectories.map { classifySubdirectory(context, it) }
+        val entries = childTypes.mapIndexedNotNull { index, type ->
+            when (type) {
+                is ChildType.Film -> processFilm(context, type.dir)
+                is ChildType.Season -> processSeason(context, type.dir, index + 1)
+                is ChildType.Empty -> null
+            }
         }
 
-        return Series(
+        return MediaGrouping(
             id = randomEntryId(),
             name = FileNameParser.parseName(context.directory.name),
             rootRelativePath = context.directory.absolutePath,
             tags = context.lumiDirectoryConfig.tags,
             franchise = context.lumiDirectoryConfig.franchise,
-            seasons = seasons.sortedBy { it.ordinalNumber }
+            entries = entries
+        )
+    }
+
+    private fun processFilm(context: ClassificationContext, filmDir: DirectoryEntry): MediaGroupingFilm {
+        val videoFiles = context.fileLister.listFilesAndDirectories(filmDir.absolutePath)
+            .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
+            .map { VideoFile(name = Name(it.name), it.absolutePath) }
+            .sortedBy { it.name.name }
+
+        return MediaGroupingFilm(
+            id = randomEntryId(),
+            name = FileNameParser.parseName(filmDir.name),
+            rootRelativePath = filmDir.absolutePath,
+            videoFiles = videoFiles
         )
     }
 
@@ -55,7 +75,7 @@ class SeriesStrategy : MediaClassifierStrategy {
             episodeFiles.firstNotNullOfOrNull { FileNameParser.extractSeasonNumberFromEpisode(it.name) }
 
         val episodes = episodeFiles
-            .map { parseEpisode(seasonDir, it, context.videoExtensions) }
+            .map { parseEpisode(it, context.videoExtensions) }
             .sortedBy { it.ordinalNumber }
 
         return EpisodesGroup(
@@ -67,9 +87,8 @@ class SeriesStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun parseEpisode(seasonDir: DirectoryEntry, file: DirectoryEntry, videoExtensions: Set<String>): Episode {
+    private fun parseEpisode(file: DirectoryEntry, videoExtensions: Set<String>): Episode {
         val details = FileNameParser.parseEpisodeDetails(file.name, videoExtensions)
-
         return Episode(
             id = randomEntryId(),
             name = Name(details.title),
@@ -81,11 +100,17 @@ class SeriesStrategy : MediaClassifierStrategy {
     private fun classifySubdirectory(context: ClassificationContext, subdirectory: DirectoryEntry): ChildType {
         val files = context.fileLister.listFilesAndDirectories(subdirectory.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
-        if (files.isEmpty()) return ChildType.Empty
-        val hasEpisodePattern = files.any { FileNameParser.extractSeasonNumberFromEpisode(it.name) != null }
+
+        // Heuristic: Does it look like a season? (multiple videos or episode patterns)
+        val isSeasonLike =
+            files.size > 1 || files.any { FileNameParser.extractSeasonNumberFromEpisode(it.name) != null }
+
+        // Heuristic: Does it look like a film? (exactly one video, no episode patterns)
+        val isFilmLike = files.size == 1 && !isSeasonLike
+
         return when {
-            files.size > 1 || hasEpisodePattern -> ChildType.Season(subdirectory)
-            files.size == 1 && !hasEpisodePattern -> ChildType.Film(subdirectory)
+            isSeasonLike -> ChildType.Season(subdirectory)
+            isFilmLike -> ChildType.Film(subdirectory)
             else -> ChildType.Empty
         }
     }

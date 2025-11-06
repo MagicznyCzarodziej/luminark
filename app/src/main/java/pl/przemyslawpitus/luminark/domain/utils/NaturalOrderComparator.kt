@@ -1,4 +1,4 @@
-package pl.przemyslawpitus.luminark.domain.library
+package pl.przemyslawpitus.luminark.domain.utils
 
 /**
  * E.g., "item 3" comes before "item 12", and "A Movie" is treated the same as "a movie".

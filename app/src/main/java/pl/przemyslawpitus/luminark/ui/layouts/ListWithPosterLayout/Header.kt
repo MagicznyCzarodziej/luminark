@@ -27,19 +27,19 @@ fun Header(
     tags: Set<String>
 ) {
     Column(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 32.dp)
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
     ) {
         Text(
             text = breadcrumbs,
             fontSize = 18.sp,
             color = Color(0x80FFFFFF),
-            modifier = Modifier
-                .padding(bottom = 8.dp)
         )
         Text(
             text = title,
             fontSize = 28.sp,
             color = Color(0xFFF5F5F5),
+            modifier = Modifier
+                .padding(top = 8.dp)
         )
         if (subtitle != null) {
             Text(
@@ -52,7 +52,7 @@ fun Header(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(top = 8.dp)
+                    .padding(top = 8.dp, bottom = 8.dp)
                     .background(
                         color = Color(0xFF772D82),
                         shape = RoundedCornerShape(100)
