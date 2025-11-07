@@ -40,6 +40,7 @@ fun LibraryScreen(
     val viewModel: LibraryViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val posterData by viewModel.posterData.collectAsState()
+    val posterPath by viewModel.posterPath.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadPoster()
@@ -66,7 +67,13 @@ fun LibraryScreen(
         Row(
             modifier = Modifier.fillMaxSize(),
         ) {
-            Poster(posterData, Modifier.fillMaxWidth(0.37f))
+            if (posterPath != null ) {
+                Poster(
+                    imageData = null,
+                    posterDirectory = posterPath.toString(),
+                    modifier = Modifier.fillMaxWidth(0.37f)
+                )
+            }
             Column {
                 Row(
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp),

@@ -68,6 +68,9 @@ dependencies {
     implementation(libs.smbj)
     implementation(libs.snakeyaml)
     implementation(libs.material.icons)
+    implementation(libs.coil)
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
+
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.51.1")

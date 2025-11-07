@@ -23,12 +23,13 @@ import pl.przemyslawpitus.luminark.domain.library.Series
 import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
 import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
+import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
 data class LibraryUiState(
     val entries: List<ListEntryUiModel> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 )
 
 sealed class NavigationEvent {
@@ -76,7 +77,7 @@ class LibraryViewModel @Inject constructor(
                         onFocus = { onEntryFocused(it) }
                     )
                 },
-                isLoading = false
+                isLoading = false,
             )
         }
         .stateIn(
@@ -92,6 +93,9 @@ class LibraryViewModel @Inject constructor(
 
     private val _posterData = MutableStateFlow<ByteArray?>(null)
     val posterData: StateFlow<ByteArray?> = _posterData
+
+    private val _posterPath = MutableStateFlow<Path?>(null)
+    val posterPath: StateFlow<Path?> = _posterPath
 
     init {
         viewModelScope.launch {
@@ -111,9 +115,10 @@ class LibraryViewModel @Inject constructor(
     private fun onEntryFocused(entry: LibraryEntry) {
         val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
         viewModelScope.launch {
-            _posterData.value = posterProvider.findPosterImage(
-                entry.rootRelativePath, supportedFileExtensions
-            )
+//            _posterData.value = posterProvider.findPosterImage(
+//                entry.rootRelativePath, supportedFileExtensions
+//            )
+            _posterPath.value = entry.rootRelativePath
         }
     }
 }

@@ -82,10 +82,10 @@ fun ListWithPosterLayout(
                 .fillMaxSize()
                 .background(Color(0xFF090A1A)),
         ) {
-            Poster(
-                props.posterData,
-                Modifier.fillMaxWidth(0.37f)
-            )
+//            Poster(
+//                imageData = props.posterData,
+//                modifier = Modifier.fillMaxWidth(0.37f)
+//            )
             Column {
                 Header(
                     breadcrumbs = props.breadcrumbs,
