@@ -1,6 +1,5 @@
 package pl.przemyslawpitus.luminark.ui.screens.MediaGroupingScreen
 
-import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import pl.przemyslawpitus.luminark.R
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.EntryId
 import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
@@ -19,7 +17,7 @@ import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
 import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
 import pl.przemyslawpitus.luminark.domain.library.Name
-import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
+import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 import javax.inject.Inject
@@ -28,7 +26,7 @@ data class MediaGroupingUiState(
     val entries: List<ListEntryUiModel>? = null,
     val name: Name? = null,
     val tags: Set<String> = emptySet(),
-    val posterBytes: ByteArray? = null,
+    val posterPath: PosterFetcher.PosterPath? = null,
     val breadcrumbs: String? = null,
     val isLoading: Boolean = true,
 )
@@ -41,8 +39,6 @@ sealed class NavigationEvent {
 @HiltViewModel
 class MediaGroupingViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
-    private val posterProvider: ImageFilePosterProvider,
-    private val application: Application,
     savedStateHandle: SavedStateHandle,
     videoPlayer: VideoPlayer,
 ) : ViewModel(),
@@ -91,15 +87,9 @@ class MediaGroupingViewModel @Inject constructor(
                 }
             }
 
-            val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
-
-            val posterBytes = posterProvider.findPosterImage(
-                mediaGrouping.rootRelativePath, supportedFileExtensions
-            )
-
             _uiState.value = MediaGroupingUiState(
                 entries = entries,
-                posterBytes = posterBytes,
+                posterPath = PosterFetcher.PosterPath(mediaGrouping.rootRelativePath),
                 isLoading = false,
                 name = mediaGrouping.name,
                 breadcrumbs = "Biblioteka",

@@ -15,7 +15,7 @@ fun FilmSeriesScreen() {
     if (!uiState.isLoading) {
         ListWithPosterLayout(
             ListWithPosterLayoutProps(
-                posterData = uiState.posterBytes,
+                posterPath = uiState.posterPath,
                 entries = uiState.entries!!,
                 title = uiState.name!!.name,
                 subtitle = uiState.name!!.alternativeName,

@@ -107,7 +107,7 @@ object HiltConfig {
     @Singleton
     fun fileRepository(
         smbFileRepository: SmbFileRepository,
-        ): FileRepository {
+    ): FileRepository {
         return smbFileRepository
     }
 
@@ -115,9 +115,12 @@ object HiltConfig {
     @Singleton
     fun imageFilePosterProvider(
         fileRepository: FileRepository,
+        @ApplicationContext context: Context,
     ): ImageFilePosterProvider {
         return ImageFilePosterProvider(
             fileRepository = fileRepository,
+            posterFileName = context.getString(R.string.poster_file_name_without_extension),
+            supportedFileExtensions = context.resources.getStringArray(R.array.poster_image_extensions).toSet()
         )
     }
 }

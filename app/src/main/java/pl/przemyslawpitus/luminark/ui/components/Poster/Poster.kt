@@ -11,37 +11,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
-import pl.przemyslawpitus.luminark.infrastructure.PosterDirectory
-import pl.przemyslawpitus.luminark.infrastructure.XD
+import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
+import java.nio.file.Path
 
 @Composable
 fun Poster(
-    imageData: ByteArray?,
     modifier: Modifier = Modifier,
-    posterDirectory: String,
+    rootRelativeDirectoryPath: Path,
 ) {
-//    val imageBitmap = remember(imageData) {
-//        imageData?.let {
-//            BitmapFactory.decodeByteArray(it, 0, it.size).asImageBitmap()
-//        }
-//    }
-
-//    if (imageBitmap != null) {
     Box(modifier = modifier) {
-        if (posterDirectory!= null) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(
-                        XD(posterDirectory)
-                    )
-                    .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxHeight()
-            )
-        }
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(PosterFetcher.PosterPath(rootRelativeDirectoryPath))
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxHeight()
+        )
         Spacer(
             modifier = Modifier
                 .matchParentSize()
@@ -55,7 +42,4 @@ fun Poster(
                 )
         )
     }
-//    } else {
-//        Box(modifier = modifier) { }
-//    }
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">luminark</string>
+    <string name="poster_file_name_without_extension">poster</string>
 </resources>

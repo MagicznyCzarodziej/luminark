@@ -1,6 +1,5 @@
 package pl.przemyslawpitus.luminark.ui.screens.LibraryScreen
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +11,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import pl.przemyslawpitus.luminark.R
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.EntryId
 import pl.przemyslawpitus.luminark.domain.library.FilmSeries
@@ -21,7 +19,6 @@ import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
 import pl.przemyslawpitus.luminark.domain.library.Series
 import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
-import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -44,8 +41,6 @@ const val LIBRARY_ROOT_PATH = "/Filmy"
 class LibraryViewModel @Inject constructor(
     private val videoPlayer: VideoPlayer,
     private val libraryRepository: LibraryRepository,
-    private val posterProvider: ImageFilePosterProvider,
-    private val application: Application,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = libraryRepository.entries
@@ -91,9 +86,6 @@ class LibraryViewModel @Inject constructor(
     private val _navigationEvent = Channel<NavigationEvent>()
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
-    private val _posterData = MutableStateFlow<ByteArray?>(null)
-    val posterData: StateFlow<ByteArray?> = _posterData
-
     private val _posterPath = MutableStateFlow<Path?>(null)
     val posterPath: StateFlow<Path?> = _posterPath
 
@@ -113,7 +105,6 @@ class LibraryViewModel @Inject constructor(
     }
 
     private fun onEntryFocused(entry: LibraryEntry) {
-        val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
         viewModelScope.launch {
 //            _posterData.value = posterProvider.findPosterImage(
 //                entry.rootRelativePath, supportedFileExtensions

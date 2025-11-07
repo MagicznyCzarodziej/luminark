@@ -30,7 +30,7 @@ fun SeriesScreen(
             null
         } else {
             ListWithPosterLayoutProps(
-                posterData = uiState.posterBytes,
+                posterPath = uiState.posterPath,
                 entries = uiState.entries!!,
                 title = uiState.name!!.name,
                 subtitle = uiState.name!!.alternativeName,

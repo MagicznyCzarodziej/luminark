@@ -1,6 +1,5 @@
 package pl.przemyslawpitus.luminark.ui.screens.FilmSeriesScreen
 
-import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,12 +8,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import pl.przemyslawpitus.luminark.R
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.FilmSeries
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.Name
-import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
+import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 import javax.inject.Inject
@@ -23,15 +21,13 @@ data class FilmSeriesUiState(
     val entries: List<ListEntryUiModel>? = null,
     val name: Name? = null,
     val tags: Set<String> = emptySet(),
-    val posterBytes: ByteArray? = null,
+    val posterPath: PosterFetcher.PosterPath? = null,
     val breadcrumbs: String? = null,
     val isLoading: Boolean = true,
 )
 @HiltViewModel
 class FilmSeriesViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
-    private val posterProvider: ImageFilePosterProvider,
-    private val application: Application,
     savedStateHandle: SavedStateHandle,
     videoPlayer: VideoPlayer,
 ) : ViewModel(),
@@ -64,15 +60,9 @@ class FilmSeriesViewModel @Inject constructor(
                 )
             }
 
-            val supportedFileExtensions = application.resources.getStringArray(R.array.poster_image_extensions).toSet()
-
-            val posterBytes = posterProvider.findPosterImage(
-                filmSeries.rootRelativePath, supportedFileExtensions
-            )
-
             _uiState.value = FilmSeriesUiState(
                 entries = entries,
-                posterBytes = posterBytes,
+                posterPath = PosterFetcher.PosterPath(filmSeries.rootRelativePath),
                 isLoading = false,
                 name = filmSeries.name,
                 breadcrumbs = "Biblioteka / ${filmSeries.name.name}",

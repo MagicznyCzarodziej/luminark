@@ -17,12 +17,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.EntriesList
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.components.Poster.Poster
 
 data class ListWithPosterLayoutProps(
-    val posterData: ByteArray?,
+    val posterPath: PosterFetcher.PosterPath?,
     val breadcrumbs: String,
     val title: String,
     val subtitle: String? = null,
@@ -82,10 +83,12 @@ fun ListWithPosterLayout(
                 .fillMaxSize()
                 .background(Color(0xFF090A1A)),
         ) {
-//            Poster(
-//                imageData = props.posterData,
-//                modifier = Modifier.fillMaxWidth(0.37f)
-//            )
+            if (props.posterPath != null) {
+                Poster(
+                    rootRelativeDirectoryPath = props.posterPath.path,
+                    modifier = Modifier.fillMaxWidth(0.37f)
+                )
+            }
             Column {
                 Header(
                     breadcrumbs = props.breadcrumbs,
