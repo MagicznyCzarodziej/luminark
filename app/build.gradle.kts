@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.safeargs)
+    alias(libs.plugins.androidx.navigation.safeargs.kotlin)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -54,34 +54,32 @@ android {
 }
 
 dependencies {
+    kapt(libs.hilt.android.compiler)
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.tv.foundation)
     implementation(libs.androidx.tv.material)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose.android)
+
+    implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
+
     implementation(libs.smbj)
     implementation(libs.snakeyaml)
     implementation(libs.material.icons)
     implementation(libs.coil)
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
     implementation(libs.timber)
-
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    implementation(libs.androidx.navigation.compose.android)
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
