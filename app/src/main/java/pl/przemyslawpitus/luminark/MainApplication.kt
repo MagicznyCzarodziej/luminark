@@ -11,8 +11,8 @@ import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterDirectoryKeyer
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterDiskKeyInterceptor
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltAndroidApp
 class MainApplication : Application(), SingletonImageLoader.Factory {

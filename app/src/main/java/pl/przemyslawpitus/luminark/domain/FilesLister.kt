@@ -3,7 +3,7 @@ package pl.przemyslawpitus.luminark.domain
 import java.nio.file.Path
 
 interface FilesLister {
-    fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry>
+    suspend fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry>
 }
 
 interface DirectoryEntry {

@@ -10,7 +10,7 @@ import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.randomEntryId
 
 class SeriesStrategy : MediaClassifierStrategy {
-    override fun isApplicable(context: ClassificationContext): Boolean {
+    override suspend fun isApplicable(context: ClassificationContext): Boolean {
         // A directory is a potential Series if it contains subfolders and no videos at the top level.
         if (context.videoFiles.isNotEmpty() || context.subdirectories.isEmpty()) {
             return false
@@ -25,7 +25,7 @@ class SeriesStrategy : MediaClassifierStrategy {
         return containsSeasons && !containsFilms
     }
 
-    override fun classify(context: ClassificationContext): LibraryEntry {
+    override suspend fun classify(context: ClassificationContext): LibraryEntry {
         val seasons = context.subdirectories.mapIndexedNotNull { index, seasonDir ->
             processSeason(context, seasonDir, index + 1)
         }
@@ -40,7 +40,7 @@ class SeriesStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun processSeason(
+    private suspend fun processSeason(
         context: ClassificationContext,
         seasonDir: DirectoryEntry,
         fallbackNumber: Int
@@ -78,7 +78,7 @@ class SeriesStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun classifySubdirectory(context: ClassificationContext, subdirectory: DirectoryEntry): ChildType {
+    private suspend fun classifySubdirectory(context: ClassificationContext, subdirectory: DirectoryEntry): ChildType {
         val files = context.fileLister.listFilesAndDirectories(subdirectory.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
         if (files.isEmpty()) return ChildType.Empty

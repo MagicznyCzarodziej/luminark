@@ -12,7 +12,7 @@ import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.randomEntryId
 
 class MediaGroupingStrategy : MediaClassifierStrategy {
-    override fun isApplicable(context: ClassificationContext): Boolean {
+    override suspend fun isApplicable(context: ClassificationContext): Boolean {
         // A directory is a potential MediaGrouping if it contains subfolders and no videos at the top level.
         if (context.videoFiles.isNotEmpty() || context.subdirectories.isEmpty()) {
             return false
@@ -26,7 +26,7 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         return containsFilms && containsSeasons
     }
 
-    override fun classify(context: ClassificationContext): LibraryEntry {
+    override suspend fun classify(context: ClassificationContext): LibraryEntry {
         val childTypes = context.subdirectories.map { classifySubdirectory(context, it) }
         val entries = childTypes.mapIndexedNotNull { index, type ->
             when (type) {
@@ -46,7 +46,7 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun processFilm(context: ClassificationContext, filmDir: DirectoryEntry): MediaGroupingFilm {
+    private suspend fun processFilm(context: ClassificationContext, filmDir: DirectoryEntry): MediaGroupingFilm {
         val videoFiles = context.fileLister.listFilesAndDirectories(filmDir.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
             .map { VideoFile(name = Name(it.name), it.absolutePath) }
@@ -60,7 +60,7 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun processSeason(
+    private suspend fun processSeason(
         context: ClassificationContext,
         seasonDir: DirectoryEntry,
         fallbackNumber: Int
@@ -97,7 +97,7 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun classifySubdirectory(context: ClassificationContext, subdirectory: DirectoryEntry): ChildType {
+    private suspend fun classifySubdirectory(context: ClassificationContext, subdirectory: DirectoryEntry): ChildType {
         val files = context.fileLister.listFilesAndDirectories(subdirectory.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
 

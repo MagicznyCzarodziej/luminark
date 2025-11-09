@@ -57,24 +57,27 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
         .build()
 
     suspend fun connectToShare() {
+        Timber.d("Connecting to the SMB share...")
         withContext(Dispatchers.IO) {
             connection = client.connect(HOSTNAME)
             val authContext = AuthenticationContext(USER, PASSWORD.toCharArray(), DOMAIN)
             session = connection!!.authenticate(authContext)
             diskShare = session!!.connectShare(SHARE_NAME) as? DiskShare
         }
+        Timber.d("Connected to the SMB share")
     }
 
-    override fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry> {
-        return try {
-            diskShare!!.list(directoryAbsolutePath.pathString)
-                .filter { it.fileName !in IGNORED_FOLDERS }
-                .map { it.toSmbDirectoryEntry(directoryAbsolutePath) }
-        } catch (exception: SMBApiException) {
-            Timber.w(exception, "Could not list path '%s'", directoryAbsolutePath)
-            emptyList()
+    override suspend fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry> =
+        withContext(Dispatchers.IO) {
+            try {
+                diskShare!!.list(directoryAbsolutePath.pathString)
+                    .filter { it.fileName !in IGNORED_FOLDERS }
+                    .map { it.toSmbDirectoryEntry(directoryAbsolutePath) }
+            } catch (exception: SMBApiException) {
+                Timber.w(exception, "Could not list path '%s'", directoryAbsolutePath)
+                emptyList()
+            }
         }
-    }
 
     override suspend fun <T> useReadFileStream(absolutePath: Path, block: (InputStream) -> T): T? =
         withContext(Dispatchers.IO) {

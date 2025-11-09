@@ -6,8 +6,8 @@ import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 
 interface MediaClassifierStrategy {
-    fun isApplicable(context: ClassificationContext): Boolean
-    fun classify(context: ClassificationContext): LibraryEntry?
+    suspend fun isApplicable(context: ClassificationContext): Boolean
+    suspend fun classify(context: ClassificationContext): LibraryEntry?
 }
 
 data class ClassificationContext(

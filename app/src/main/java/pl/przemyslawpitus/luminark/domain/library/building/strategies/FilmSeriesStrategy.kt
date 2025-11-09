@@ -17,11 +17,11 @@ class FilmSeriesStrategy : MediaClassifierStrategy {
     /**
      * A directory is a FilmSeries if it defined as such in config file
      */
-    override fun isApplicable(context: ClassificationContext): Boolean {
+    override suspend fun isApplicable(context: ClassificationContext): Boolean {
         return context.lumiDirectoryConfig.type === LumiDirectoryConfig.Type.FILM_SERIES
     }
 
-    override fun classify(context: ClassificationContext): LibraryEntry {
+    override suspend fun classify(context: ClassificationContext): LibraryEntry {
         val films = context.subdirectories.mapNotNull { filmDir ->
             processFilm(context, filmDir)
         }
@@ -36,7 +36,7 @@ class FilmSeriesStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun processFilm(
+    private suspend fun processFilm(
         context: ClassificationContext,
         filmDir: DirectoryEntry,
     ): FilmSeriesFilm? {

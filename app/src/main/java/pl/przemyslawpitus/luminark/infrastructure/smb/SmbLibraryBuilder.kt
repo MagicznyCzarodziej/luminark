@@ -8,6 +8,7 @@ import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.Library
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
 import pl.przemyslawpitus.luminark.domain.utils.NaturalOrderComparator
+import timber.log.Timber
 import java.nio.file.Path
 
 class SmbLibraryBuilder(
@@ -17,16 +18,19 @@ class SmbLibraryBuilder(
     override suspend fun buildLibraryFrom(rootLibraryPath: Path): Library = withContext(Dispatchers.IO) {
         smbFileRepository.connectToShare() // TODO
 
+        Timber.d("Listing the root library directory")
         val rootDirs = smbFileRepository.listFilesAndDirectories(rootLibraryPath)
             .filter { it.isDirectory }
             .sortedWith(compareBy(NaturalOrderComparator) { it.name })
 
+        Timber.d("Building the library")
         val libraryEntries = rootDirs.map { dir ->
             async {
                 libraryParser.parseDirectory(dir)
             }
         }.awaitAll().filterNotNull()
 
+        Timber.d("Library built")
         Library(entries = libraryEntries)
     }
 }
