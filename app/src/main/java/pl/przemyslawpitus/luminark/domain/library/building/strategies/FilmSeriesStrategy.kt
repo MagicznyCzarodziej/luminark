@@ -9,6 +9,9 @@ import pl.przemyslawpitus.luminark.domain.library.VideoFile
 import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 import pl.przemyslawpitus.luminark.randomEntryId
+import java.util.regex.Pattern
+
+val FILM_SERIES_FILM_NUMBER_PATTERN: Pattern = Pattern.compile("""^\[(\d+)\]\s""")
 
 class FilmSeriesStrategy : MediaClassifierStrategy {
     /**
@@ -48,8 +51,16 @@ class FilmSeriesStrategy : MediaClassifierStrategy {
             id = randomEntryId(),
             name = FileNameParser.parseName(filmDir.name),
             rootRelativePath = filmDir.absolutePath,
-            ordinalNumber = 0, // TODO
+            ordinalNumber = getOrdinalNumberFromName(filmDir.name) ?: 0,
             videoFiles = videoFiles
         )
+    }
+
+    private fun getOrdinalNumberFromName(name: String): Int? {
+        val matcher = FILM_SERIES_FILM_NUMBER_PATTERN.matcher(name)
+        if (matcher.find()) {
+            return matcher.group(1)?.toIntOrNull()
+        }
+        return null
     }
 }

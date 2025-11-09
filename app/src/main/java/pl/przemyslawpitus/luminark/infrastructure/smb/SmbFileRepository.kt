@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import pl.przemyslawpitus.luminark.domain.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.FileRepository
 import pl.przemyslawpitus.luminark.domain.FilesLister
+import timber.log.Timber
 import java.io.InputStream
 import java.nio.file.Path
 import java.util.EnumSet
@@ -43,9 +44,9 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
 
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
-            println("Shutdown hook triggered: Disconnecting from SMB share...")
+            Timber.d("Shutdown hook triggered: Disconnecting from SMB share...")
             disconnect()
-            println("SMB Client closed.")
+            Timber.d("SMB Client closed.")
         })
     }
 
@@ -64,19 +65,13 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
         }
     }
 
-    private fun disconnect() {
-        diskShare?.close()
-        session?.close()
-        connection?.close()
-    }
-
     override fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry> {
         return try {
             diskShare!!.list(directoryAbsolutePath.pathString)
                 .filter { it.fileName !in IGNORED_FOLDERS }
                 .map { it.toSmbDirectoryEntry(directoryAbsolutePath) }
-        } catch (e: SMBApiException) {
-            println("Warning: Could not list path '$directoryAbsolutePath'. Error: ${e.message}")
+        } catch (exception: SMBApiException) {
+            Timber.w(exception, "Could not list path '%s'", directoryAbsolutePath)
             emptyList()
         }
     }
@@ -86,7 +81,7 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
             val share = diskShare ?: return@withContext null
 
             if (!share.fileExists(absolutePath.pathString)) {
-                println("File does not exist: $absolutePath")
+                Timber.w("File does not exist: %s", absolutePath)
                 return@withContext null
             }
             val accessMask = EnumSet.of(AccessMask.FILE_READ_DATA)
@@ -107,12 +102,18 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
                         block(inputStream)
                     }
                 }
-            } catch (e: Exception) {
-                System.err.println("Error opening or reading file '$absolutePath': ${e.message}")
-                e.printStackTrace()
+            } catch (exception: Exception) {
+                Timber.e(exception, "Error opening or reading file '%s'", absolutePath)
                 null
             }
         }
+
+    private fun disconnect() {
+        diskShare?.close()
+        session?.close()
+        connection?.close()
+    }
+
 }
 
 private fun FileIdBothDirectoryInformation.toSmbDirectoryEntry(

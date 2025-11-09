@@ -49,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -70,6 +71,7 @@ dependencies {
     implementation(libs.material.icons)
     implementation(libs.coil)
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
+    implementation(libs.timber)
 
 
     // Hilt

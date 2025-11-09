@@ -66,7 +66,7 @@ class FilmSeriesViewModel @Inject constructor(
                 isLoading = false,
                 name = filmSeries.name,
                 breadcrumbs = "Biblioteka / ${filmSeries.name.name}",
-                tags = emptySet(),
+                tags = filmSeries.tags,
             )
         }
     }

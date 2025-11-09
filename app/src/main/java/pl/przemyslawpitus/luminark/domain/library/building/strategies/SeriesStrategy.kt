@@ -55,7 +55,7 @@ class SeriesStrategy : MediaClassifierStrategy {
             episodeFiles.firstNotNullOfOrNull { FileNameParser.extractSeasonNumberFromEpisode(it.name) }
 
         val episodes = episodeFiles
-            .map { parseEpisode(seasonDir, it, context.videoExtensions) }
+            .map { parseEpisode(it, context) }
             .sortedBy { it.ordinalNumber }
 
         return EpisodesGroup(
@@ -67,8 +67,8 @@ class SeriesStrategy : MediaClassifierStrategy {
         )
     }
 
-    private fun parseEpisode(seasonDir: DirectoryEntry, file: DirectoryEntry, videoExtensions: Set<String>): Episode {
-        val details = FileNameParser.parseEpisodeDetails(file.name, videoExtensions)
+    private fun parseEpisode(file: DirectoryEntry, context: ClassificationContext): Episode {
+        val details = FileNameParser.parseEpisodeDetails(file.name, context.videoExtensions, context.directory.name)
 
         return Episode(
             id = randomEntryId(),

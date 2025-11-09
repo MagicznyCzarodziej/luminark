@@ -52,7 +52,7 @@ class EpisodesViewModel @Inject constructor(
                 .filterIsInstance<Series>()
                 .find { it.seasons.any { it.id.id == seasonId } }
 
-            val episodesGroup = libraryRepository.getTopLevelEntries() // TODO
+            val episodesGroup = libraryRepository.getTopLevelEntries()
                 .filterIsInstance<Series>()
                 .flatMap { it.seasons }
                 .find { it.id.id == seasonId }
@@ -72,7 +72,7 @@ class EpisodesViewModel @Inject constructor(
                 isLoading = false,
                 name = episodesGroup.name,
                 breadcrumbs = "Biblioteka / ${series!!.name.name}",
-                tags = emptySet(),
+                tags = series.tags,
             )
         }
     }

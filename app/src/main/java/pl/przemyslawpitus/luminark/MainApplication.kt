@@ -12,11 +12,20 @@ import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterDirecto
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterDiskKeyInterceptor
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
 import javax.inject.Inject
+import timber.log.Timber
 
 @HiltAndroidApp
 class MainApplication : Application(), SingletonImageLoader.Factory {
     @Inject
     lateinit var imageFilePosterProvider: ImageFilePosterProvider
+
+    override fun onCreate() {
+        super.onCreate()
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
 
     override fun newImageLoader(context: Context): ImageLoader {
         return ImageLoader.Builder(this)

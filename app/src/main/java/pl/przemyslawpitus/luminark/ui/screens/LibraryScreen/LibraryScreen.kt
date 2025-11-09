@@ -42,10 +42,6 @@ fun LibraryScreen(
     val posterPath by viewModel.posterPath.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadPoster()
-    }
-
-    LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
                 is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.FilmSeries(event.filmSeriesId.id))

@@ -95,20 +95,8 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    fun loadPoster() {
-//        println("Loading poster...")
-//        viewModelScope.launch {
-//           smbFileRepository.useReadFileStream("poster.jpg") { inputStream ->
-//               _posterData.value = inputStream.readBytes()
-//           }
-//        }
-    }
-
     private fun onEntryFocused(entry: LibraryEntry) {
         viewModelScope.launch {
-//            _posterData.value = posterProvider.findPosterImage(
-//                entry.rootRelativePath, supportedFileExtensions
-//            )
             _posterPath.value = entry.rootRelativePath
         }
     }

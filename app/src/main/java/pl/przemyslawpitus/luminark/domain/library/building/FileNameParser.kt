@@ -1,6 +1,7 @@
 package pl.przemyslawpitus.luminark.domain.library.building
 
 import pl.przemyslawpitus.luminark.domain.library.Name
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.FILM_SERIES_FILM_NUMBER_PATTERN
 import java.util.Locale
 import java.util.regex.Pattern
 
@@ -13,25 +14,26 @@ private val GENERIC_NUMBER_PATTERN: Pattern = Pattern.compile("(\\d+)")
 data class EpisodeDetails(val number: Int, val title: String)
 
 object FileNameParser {
-    fun parseEpisodeDetails(fileName: String, videoExtensions: Set<String>): EpisodeDetails {
+    fun parseEpisodeDetails(fileName: String, videoExtensions: Set<String>, seriesName: String): EpisodeDetails {
         val matcher = EPISODE_FILE_PATTERN.matcher(fileName)
         val fileBaseName = getFileBaseName(fileName, videoExtensions)
+        val episodeNameWithoutSeriesName = fileBaseName.removePrefix("$seriesName - ")
 
         if (!matcher.matches()) {
             val episodeNumber = extractNumber(fileName) ?: 0
-            return EpisodeDetails(episodeNumber, fileBaseName)
+            return EpisodeDetails(episodeNumber, episodeNameWithoutSeriesName)
         }
 
         return try {
             val episodeNumber = matcher.group(2)?.toInt()
 
             if (episodeNumber != null) {
-                EpisodeDetails(episodeNumber, fileBaseName)
+                EpisodeDetails(episodeNumber, episodeNameWithoutSeriesName)
             } else {
-                EpisodeDetails(extractNumber(fileName) ?: 0, fileBaseName)
+                EpisodeDetails(extractNumber(fileName) ?: 0, episodeNameWithoutSeriesName)
             }
         } catch (e: NumberFormatException) {
-            EpisodeDetails(extractNumber(fileName) ?: 0, fileBaseName)
+            EpisodeDetails(extractNumber(fileName) ?: 0, episodeNameWithoutSeriesName)
         }
     }
 
@@ -40,11 +42,11 @@ object FileNameParser {
         val match = regex.find(folderName)
 
         return if (match != null) {
-            val mainName = match.groupValues[1].trim()
+            val mainName = match.groupValues[1].trim().replace(FILM_SERIES_FILM_NUMBER_PATTERN.toRegex(), "")
             val altName = match.groupValues[2].trim()
             Name(mainName, altName)
         } else {
-            Name(folderName.trim())
+            Name(folderName.trim().replace(FILM_SERIES_FILM_NUMBER_PATTERN.toRegex(), ""))
         }
     }
 

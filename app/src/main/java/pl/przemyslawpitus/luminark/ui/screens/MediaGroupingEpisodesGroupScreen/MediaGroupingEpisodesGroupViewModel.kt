@@ -73,7 +73,7 @@ class MediaGroupingEpisodesGroupViewModel @Inject constructor(
                 isLoading = false,
                 name = mediaGroupingEpisodesGroup.name,
                 breadcrumbs = "Biblioteka / ${mediaGrouping.name.name}",
-                tags = emptySet(),
+                tags = mediaGrouping.tags,
             )
         }
     }

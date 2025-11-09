@@ -93,7 +93,7 @@ class MediaGroupingViewModel @Inject constructor(
                 isLoading = false,
                 name = mediaGrouping.name,
                 breadcrumbs = "Biblioteka",
-                tags = emptySet(),
+                tags = mediaGrouping.tags,
             )
         }
     }

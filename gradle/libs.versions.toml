@@ -17,6 +17,7 @@ snakeyaml = "2.2"
 materialIcons = "1.6.8"
 safeargsKotlin = "2.9.6"
 coil = "3.2.0"
+timber = "5.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,6 +40,7 @@ snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" 
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 material-icons = { group = "androidx.compose.material", name = "material-icons-extended-android", version.ref = "materialIcons" }
 coil = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
