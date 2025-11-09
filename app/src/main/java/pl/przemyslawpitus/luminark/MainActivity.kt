@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.NonInteractiveSurfaceDefaults
 import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
 import dagger.hilt.android.AndroidEntryPoint
 import pl.przemyslawpitus.luminark.ui.navigation.AppNavigation
 import pl.przemyslawpitus.luminark.ui.theme.LuminarkTheme
@@ -20,7 +19,6 @@ import pl.przemyslawpitus.luminark.ui.theme.LuminarkTheme
 class MainActivity : ComponentActivity() {
     private val permissionManager by lazy { PermissionManager(this) }
 
-    @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,7 +34,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     shape = RectangleShape, // Use RectangleShape to fill the whole screen
-                    colors = NonInteractiveSurfaceDefaults.colors(
+                    colors = SurfaceDefaults.colors(
                         containerColor = Color(0xFF090A1A)
                     )
                 ) {

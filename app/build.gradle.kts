@@ -9,7 +9,12 @@ plugins {
 }
 
 hilt {
+    // https://stackoverflow.com/questions/78760124/issue-with-hilt-application-class-gradle-dependency-conflict
     enableAggregatingTask = false
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 android {
@@ -24,11 +29,10 @@ android {
 
     defaultConfig {
         applicationId = "pl.przemyslawpitus.luminark"
-        minSdk = 30
+        minSdk = 30 // Android 11
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
     }
 
     buildTypes {
@@ -40,18 +44,13 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
 }
+
 
 dependencies {
     kapt(libs.hilt.android.compiler)
@@ -61,7 +60,6 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.tv.foundation)
     implementation(libs.androidx.tv.material)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)

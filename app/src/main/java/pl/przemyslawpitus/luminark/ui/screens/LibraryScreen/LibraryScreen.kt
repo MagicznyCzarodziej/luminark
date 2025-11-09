@@ -25,14 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.EntriesList
 import pl.przemyslawpitus.luminark.ui.components.Poster.Poster
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 
-@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     navController: NavController,
@@ -146,12 +144,6 @@ fun LibraryScreen(
                     entries = uiState.entries,
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
                 )
-//
-//                LibraryList(
-//                    entries = uiState.entries,
-//                    onEntryClick = viewModel::onEntryClick,
-//                    onFocusedEntryChange = viewModel::onEntryFocused,
-//                )
             }
         }
 
