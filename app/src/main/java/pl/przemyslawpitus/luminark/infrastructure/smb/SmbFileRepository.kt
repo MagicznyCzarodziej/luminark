@@ -59,10 +59,14 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
     suspend fun connectToShare() {
         Timber.d("Connecting to the SMB share...")
         withContext(Dispatchers.IO) {
-            connection = client.connect(HOSTNAME)
-            val authContext = AuthenticationContext(USER, PASSWORD.toCharArray(), DOMAIN)
-            session = connection!!.authenticate(authContext)
-            diskShare = session!!.connectShare(SHARE_NAME) as? DiskShare
+            try {
+                connection = client.connect(HOSTNAME)
+                val authContext = AuthenticationContext(USER, PASSWORD.toCharArray(), DOMAIN)
+                session = connection!!.authenticate(authContext)
+                diskShare = session!!.connectShare(SHARE_NAME) as? DiskShare
+            } catch (exception: Exception) {
+                Timber.e(exception, "Failed to connect to the SMB share")
+            }
         }
         Timber.d("Connected to the SMB share")
     }

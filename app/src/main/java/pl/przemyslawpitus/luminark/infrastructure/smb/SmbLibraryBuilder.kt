@@ -16,8 +16,6 @@ class SmbLibraryBuilder(
     private val libraryParser: LibraryParser,
 ) : LibraryBuilder {
     override suspend fun buildLibraryFrom(rootLibraryPath: Path): Library = withContext(Dispatchers.IO) {
-        smbFileRepository.connectToShare() // TODO
-
         Timber.d("Listing the root library directory")
         val rootDirs = smbFileRepository.listFilesAndDirectories(rootLibraryPath)
             .filter { it.isDirectory }
