@@ -1,6 +1,6 @@
 package pl.przemyslawpitus.luminark.domain.poster
 
-import pl.przemyslawpitus.luminark.domain.FileRepository
+import pl.przemyslawpitus.luminark.domain.fileSystem.FileRepository
 import java.nio.file.Path
 
 class ImageFilePosterProvider(

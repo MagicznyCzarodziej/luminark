@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">luminark</string>
     <string name="poster_file_name_without_extension">poster</string>
+    <string name="library_json_cache_filename">library_cache.json</string>
 </resources>

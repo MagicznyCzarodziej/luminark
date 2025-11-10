@@ -1,6 +1,6 @@
 package pl.przemyslawpitus.luminark.domain.library.building.strategies
 
-import pl.przemyslawpitus.luminark.domain.DirectoryEntry
+import pl.przemyslawpitus.luminark.domain.fileSystem.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.library.FilmSeries
 import pl.przemyslawpitus.luminark.domain.library.FilmSeriesFilm
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry

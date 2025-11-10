@@ -4,8 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.Library
+import pl.przemyslawpitus.luminark.domain.library.building.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
 import pl.przemyslawpitus.luminark.domain.utils.NaturalOrderComparator
 import timber.log.Timber

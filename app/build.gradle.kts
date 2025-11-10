@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.material.icons)
     implementation(libs.coil)
     implementation(libs.timber)
+    implementation(libs.kotlin.serialization.json)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)

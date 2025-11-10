@@ -1,4 +1,4 @@
-package pl.przemyslawpitus.luminark.domain
+package pl.przemyslawpitus.luminark.domain.fileSystem
 
 import java.nio.file.Path
 

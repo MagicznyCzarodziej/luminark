@@ -15,9 +15,9 @@ import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import pl.przemyslawpitus.luminark.domain.DirectoryEntry
-import pl.przemyslawpitus.luminark.domain.FileRepository
-import pl.przemyslawpitus.luminark.domain.FilesLister
+import pl.przemyslawpitus.luminark.domain.fileSystem.DirectoryEntry
+import pl.przemyslawpitus.luminark.domain.fileSystem.FileRepository
+import pl.przemyslawpitus.luminark.domain.fileSystem.FilesLister
 import timber.log.Timber
 import java.io.InputStream
 import java.nio.file.Path

@@ -80,10 +80,6 @@ class MediaGroupingViewModel @Inject constructor(
                         onClick = { playVideo(it.rootRelativePath) },
                         onFocus = { }
                     )
-
-                    else -> {
-                        throw RuntimeException()
-                    }
                 }
             }
 

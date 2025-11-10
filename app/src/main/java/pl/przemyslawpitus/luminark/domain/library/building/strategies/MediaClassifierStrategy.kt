@@ -1,7 +1,7 @@
 package pl.przemyslawpitus.luminark.domain.library.building.strategies
 
-import pl.przemyslawpitus.luminark.domain.DirectoryEntry
-import pl.przemyslawpitus.luminark.domain.FilesLister
+import pl.przemyslawpitus.luminark.domain.fileSystem.DirectoryEntry
+import pl.przemyslawpitus.luminark.domain.fileSystem.FilesLister
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 

@@ -8,15 +8,17 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import pl.przemyslawpitus.luminark.R
-import pl.przemyslawpitus.luminark.domain.FileRepository
-import pl.przemyslawpitus.luminark.domain.FilesLister
-import pl.przemyslawpitus.luminark.domain.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
+import pl.przemyslawpitus.luminark.domain.fileSystem.FileRepository
+import pl.przemyslawpitus.luminark.domain.fileSystem.FilesLister
+import pl.przemyslawpitus.luminark.domain.library.LibraryCache
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
+import pl.przemyslawpitus.luminark.domain.library.building.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
 import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
-import pl.przemyslawpitus.luminark.infrastructure.InMemoryLibraryRepository
+import pl.przemyslawpitus.luminark.infrastructure.InMemoryCachedLibraryRepository
+import pl.przemyslawpitus.luminark.infrastructure.libraryCache.LibraryJsonCache
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbFileRepository
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLibraryBuilder
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLumiDirectoryConfigFileReader
@@ -96,10 +98,12 @@ object HiltConfig {
     @Provides
     @Singleton
     fun libraryRepository(
-        libraryBuilder: LibraryBuilder
+        libraryBuilder: LibraryBuilder,
+        libraryCache: LibraryCache,
     ): LibraryRepository {
-        return InMemoryLibraryRepository(
+        return InMemoryCachedLibraryRepository(
             libraryBuilder = libraryBuilder,
+            libraryCache = libraryCache,
         )
     }
 
@@ -121,6 +125,16 @@ object HiltConfig {
             fileRepository = fileRepository,
             posterFileName = context.getString(R.string.poster_file_name_without_extension),
             supportedFileExtensions = context.resources.getStringArray(R.array.poster_image_extensions).toSet()
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun libraryCache(
+        @ApplicationContext context: Context,
+    ): LibraryCache {
+        return LibraryJsonCache(
+            context = context,
         )
     }
 }

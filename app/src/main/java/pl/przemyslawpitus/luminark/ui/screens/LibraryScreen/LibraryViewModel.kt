@@ -54,7 +54,6 @@ class LibraryViewModel @Inject constructor(
                             is Series -> ListEntryUiModel.Type.Series(it.seasons.size)
                             is MediaGrouping -> ListEntryUiModel.Type.Grouping(it.entries.size)
                             is FilmSeries -> ListEntryUiModel.Type.PlayablesGroup(it.films.size)
-                            else -> {throw RuntimeException()}
                         },
                         onClick = {
                             viewModelScope.launch {
