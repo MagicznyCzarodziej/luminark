@@ -12,6 +12,7 @@
         <item>wmv</item>
         <item>mpg</item>
         <item>mpeg</item>
+        <item>vob</item>
     </string-array>
 
     <string-array name="poster_image_extensions">

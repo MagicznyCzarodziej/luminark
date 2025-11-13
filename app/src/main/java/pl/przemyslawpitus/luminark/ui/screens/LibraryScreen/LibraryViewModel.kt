@@ -49,7 +49,7 @@ class LibraryViewModel @Inject constructor(
                 entries = entries.map {
                     ListEntryUiModel(
                         name = it.name,
-                        type = when(it){
+                        type = when (it) {
                             is StandaloneFilm -> ListEntryUiModel.Type.Single
                             is Series -> ListEntryUiModel.Type.Series(it.seasons.size)
                             is MediaGrouping -> ListEntryUiModel.Type.Grouping(it.entries.size)
@@ -91,6 +91,12 @@ class LibraryViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             libraryRepository.initialize(Paths.get(LIBRARY_ROOT_PATH))
+        }
+    }
+
+    fun rebuildLibrary() {
+        viewModelScope.launch {
+            libraryRepository.initialize(Paths.get(LIBRARY_ROOT_PATH), true)
         }
     }
 

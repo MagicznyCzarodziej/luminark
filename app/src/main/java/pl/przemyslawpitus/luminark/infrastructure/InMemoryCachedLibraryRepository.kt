@@ -19,10 +19,12 @@ class InMemoryCachedLibraryRepository(
         return _entries.value
     }
 
-    override suspend fun initialize(libraryRootPath: Path) {
-        if (_entries.value.isNotEmpty()) return
-
-        val libraryFromCache = libraryCache.load()
+    override suspend fun initialize(libraryRootPath: Path, ignoreCache: Boolean) {
+        val libraryFromCache = if (!ignoreCache) {
+            libraryCache.load()
+        } else {
+            null
+        }
 
         if (libraryFromCache != null) {
             _entries.value = libraryFromCache.entries
@@ -31,7 +33,6 @@ class InMemoryCachedLibraryRepository(
 
         val library = libraryBuilder.buildLibraryFrom(libraryRootPath)
         libraryCache.save(library)
-
         _entries.value = library.entries
     }
 }

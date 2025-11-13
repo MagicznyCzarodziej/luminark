@@ -6,6 +6,6 @@ import java.nio.file.Path
 interface LibraryRepository {
     val entries: Flow<List<LibraryEntry>>
 
-    suspend fun initialize(libraryRootPath: Path)
+    suspend fun initialize(libraryRootPath: Path, ignoreCache: Boolean = false)
     fun getTopLevelEntries(): List<LibraryEntry>
 }
