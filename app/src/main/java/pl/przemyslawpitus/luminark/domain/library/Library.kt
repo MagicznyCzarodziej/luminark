@@ -23,10 +23,11 @@ data class Library(
 )
 
 @Serializable
-sealed interface LibraryEntry {
-    val id: EntryId
-    val name: Name
-    val rootRelativePath: Path
+sealed interface LibraryEntry: Directory {
+    override val id: EntryId
+    override val name: Name
+    override val rootRelativePath: Path
+    override val rootRelativePosterPath: Path
 }
 
 interface Directory {
@@ -37,6 +38,7 @@ interface Directory {
      *  and the library root path is "/Filmy" then this path would be "Avengers/The Avengers"
      */
     val rootRelativePath: Path
+    val rootRelativePosterPath: Path
 }
 
 @Serializable
@@ -44,6 +46,7 @@ data class StandaloneFilm(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     override val tags: Set<String>,
     override val franchise: Franchise?,
     val videoFiles: List<VideoFile>,
@@ -54,6 +57,7 @@ data class FilmSeries(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     override val tags: Set<String>,
     override val franchise: Franchise?,
     val films: List<FilmSeriesFilm>,
@@ -64,6 +68,7 @@ data class FilmSeriesFilm(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     val ordinalNumber: Int,
     val videoFiles: List<VideoFile>,
 ): Directory
@@ -73,6 +78,7 @@ data class Series(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     override val tags: Set<String>,
     override val franchise: Franchise?,
     val seasons: List<EpisodesGroup>,
@@ -83,6 +89,7 @@ data class EpisodesGroup(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     val ordinalNumber: Int,
     val episodes: List<Episode>,
 ): Directory, MediaGroupingEntry
@@ -100,6 +107,7 @@ data class MediaGrouping(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     override val tags: Set<String>,
     override val franchise: Franchise?,
     val entries: List<MediaGroupingEntry>,
@@ -117,6 +125,7 @@ data class MediaGroupingFilm(
     override val id: EntryId,
     override val name: Name,
     override val rootRelativePath: Path,
+    override val rootRelativePosterPath: Path,
     val videoFiles: List<VideoFile>,
 ): Directory, MediaGroupingEntry
 

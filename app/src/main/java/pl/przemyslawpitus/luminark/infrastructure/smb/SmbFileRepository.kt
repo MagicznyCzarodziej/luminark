@@ -14,6 +14,8 @@ import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import pl.przemyslawpitus.luminark.domain.fileSystem.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.fileSystem.FileRepository
@@ -42,6 +44,8 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
     private var connection: Connection? = null
     private var diskShare: DiskShare? = null
 
+    private val connectionMutex = Mutex()
+
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
             Timber.d("Shutdown hook triggered: Disconnecting from SMB share...")
@@ -56,23 +60,34 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
         .appendPath(SHARE_NAME)
         .build()
 
-    suspend fun connectToShare() {
-        Timber.d("Connecting to the SMB share...")
-        withContext(Dispatchers.IO) {
+    suspend fun ensureConnected() = withContext(Dispatchers.IO) {
+        if (diskShare != null) {
+            return@withContext
+        }
+
+        connectionMutex.withLock {
+            if (diskShare != null) {
+                return@withLock
+            }
+
+            Timber.d("Connecting to the SMB share...")
             try {
                 connection = client.connect(HOSTNAME)
                 val authContext = AuthenticationContext(USER, PASSWORD.toCharArray(), DOMAIN)
                 session = connection!!.authenticate(authContext)
                 diskShare = session!!.connectShare(SHARE_NAME) as? DiskShare
+                Timber.d("Connected to the SMB share")
             } catch (exception: Exception) {
                 Timber.e(exception, "Failed to connect to the SMB share")
+                throw IllegalStateException("Failed to establish SMB connection", exception)
             }
         }
-        Timber.d("Connected to the SMB share")
     }
 
-    override suspend fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry> =
-        withContext(Dispatchers.IO) {
+    override suspend fun listFilesAndDirectories(directoryAbsolutePath: Path): List<DirectoryEntry> {
+        ensureConnected()
+
+        return withContext(Dispatchers.IO) {
             try {
                 diskShare!!.list(directoryAbsolutePath.pathString)
                     .filter { it.fileName !in IGNORED_FOLDERS }
@@ -82,9 +97,12 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
                 emptyList()
             }
         }
+    }
 
-    override suspend fun <T> useReadFileStream(absolutePath: Path, block: (InputStream) -> T): T? =
-        withContext(Dispatchers.IO) {
+    override suspend fun <T> useReadFileStream(absolutePath: Path, block: (InputStream) -> T): T? {
+        ensureConnected()
+
+        return withContext(Dispatchers.IO) {
             val share = diskShare ?: return@withContext null
 
             if (!share.fileExists(absolutePath.pathString)) {
@@ -114,6 +132,7 @@ class SmbFileRepository @Inject constructor() : FilesLister, FileRepository {
                 null
             }
         }
+    }
 
     private fun disconnect() {
         diskShare?.close()

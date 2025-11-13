@@ -10,6 +10,7 @@ import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.domain.library.VideoFile
 import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.randomEntryId
+import java.nio.file.Path
 
 class MediaGroupingStrategy : MediaClassifierStrategy {
     override suspend fun isApplicable(context: ClassificationContext): Boolean {
@@ -27,35 +28,74 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
     }
 
     override suspend fun classify(context: ClassificationContext): LibraryEntry {
+        val posterPath =
+            context.posterProvider.findPosterImageWithFallback(directoryAbsolutePath = context.directory.absolutePath)
+
         val childTypes = context.subdirectories.map { classifySubdirectory(context, it) }
         val entries = childTypes.mapIndexedNotNull { index, type ->
             when (type) {
-                is ChildType.Film -> processFilm(context, type.dir)
-                is ChildType.Season -> processSeason(context, type.dir, index + 1)
+                is ChildType.Film -> processFilm(
+                    context = context,
+                    filmDir = type.dir,
+                    mainPosterPath = posterPath,
+                )
+
+                is ChildType.Season -> processSeason(
+                    context = context,
+                    seasonDir = type.dir,
+                    fallbackNumber = index + 1,
+                    mainPosterPath = posterPath,
+                )
+
                 is ChildType.Empty -> null
             }
-        }
+        }.sortedWith(
+            compareBy(
+                {
+                    // Primary sort key: Films after seasons
+                    if (it is EpisodesGroup) 0 else 1
+                },
+                {
+                    // Secondary sort key: Sort seasons by their ordinal number
+                    if (it is EpisodesGroup) it.ordinalNumber else null
+                },
+                {
+                    // Tertiary sort key: Sort films by their name
+                    if (it is MediaGroupingFilm) it.name.name else null
+                }
+            )
+        )
+
 
         return MediaGrouping(
             id = randomEntryId(),
             name = FileNameParser.parseName(context.directory.name),
             rootRelativePath = context.directory.absolutePath,
+            rootRelativePosterPath = posterPath,
             tags = context.lumiDirectoryConfig.tags,
             franchise = context.lumiDirectoryConfig.franchise,
             entries = entries
         )
     }
 
-    private suspend fun processFilm(context: ClassificationContext, filmDir: DirectoryEntry): MediaGroupingFilm {
+    private suspend fun processFilm(
+        context: ClassificationContext,
+        filmDir: DirectoryEntry,
+        mainPosterPath: Path,
+    ): MediaGroupingFilm {
         val videoFiles = context.fileLister.listFilesAndDirectories(filmDir.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
             .map { VideoFile(name = Name(it.name), it.absolutePath) }
             .sortedBy { it.name.name }
 
+        val posterPath = context.posterProvider.findPosterImage(directoryAbsolutePath = filmDir.absolutePath)
+            ?: mainPosterPath
+
         return MediaGroupingFilm(
             id = randomEntryId(),
             name = FileNameParser.parseName(filmDir.name),
             rootRelativePath = filmDir.absolutePath,
+            rootRelativePosterPath = posterPath,
             videoFiles = videoFiles
         )
     }
@@ -63,7 +103,8 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
     private suspend fun processSeason(
         context: ClassificationContext,
         seasonDir: DirectoryEntry,
-        fallbackNumber: Int
+        fallbackNumber: Int,
+        mainPosterPath: Path,
     ): EpisodesGroup? {
         val episodeFiles = context.fileLister.listFilesAndDirectories(seasonDir.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
@@ -78,10 +119,14 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
             .map { parseEpisode(it, context) }
             .sortedBy { it.ordinalNumber }
 
+        val posterPath = context.posterProvider.findPosterImage(directoryAbsolutePath = seasonDir.absolutePath)
+            ?: mainPosterPath
+
         return EpisodesGroup(
             id = randomEntryId(),
             name = Name(seasonDir.name),
             rootRelativePath = seasonDir.absolutePath,
+            rootRelativePosterPath = posterPath,
             ordinalNumber = seasonNumberFromName ?: seasonNumberFromEpisode ?: fallbackNumber,
             episodes = episodes
         )

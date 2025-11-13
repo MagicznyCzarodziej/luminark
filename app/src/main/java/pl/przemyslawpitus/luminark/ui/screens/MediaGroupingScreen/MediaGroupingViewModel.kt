@@ -15,11 +15,13 @@ import pl.przemyslawpitus.luminark.domain.library.EntryId
 import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
+import pl.przemyslawpitus.luminark.domain.library.MediaGroupingEntry
 import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
 import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
+import java.nio.file.Path
 import javax.inject.Inject
 
 data class MediaGroupingUiState(
@@ -71,21 +73,21 @@ class MediaGroupingViewModel @Inject constructor(
                         name = it.name,
                         type = ListEntryUiModel.Type.PlayablesGroup(it.episodes.size),
                         onClick = { onMediaGroupingEpisodesGroupClick(mediaGrouping.id, it.id) },
-                        onFocus = { }
+                        onFocus = { onGroupFocused(it.rootRelativePosterPath) }
                     )
 
                     is MediaGroupingFilm -> ListEntryUiModel(
                         name = it.name,
                         type = ListEntryUiModel.Type.Single,
                         onClick = { playVideo(it.rootRelativePath) },
-                        onFocus = { }
+                        onFocus = { onGroupFocused(it.rootRelativePosterPath) }
                     )
                 }
             }
 
             _uiState.value = MediaGroupingUiState(
                 entries = entries,
-                posterPath = PosterFetcher.PosterPath(mediaGrouping.rootRelativePath),
+                posterPath = PosterFetcher.PosterPath(mediaGrouping.rootRelativePosterPath),
                 isLoading = false,
                 name = mediaGrouping.name,
                 breadcrumbs = "Biblioteka",
@@ -98,5 +100,11 @@ class MediaGroupingViewModel @Inject constructor(
         viewModelScope.launch {
             _navigationEvent.send(NavigationEvent.ToMediaGroupingEpisodesGroup(mediaGroupingId, episodesGroupId))
         }
+    }
+
+    private fun onGroupFocused(rootRelativePosterPath: Path) {
+        _uiState.value = _uiState.value.copy(
+            posterPath = PosterFetcher.PosterPath(rootRelativePosterPath)
+        )
     }
 }

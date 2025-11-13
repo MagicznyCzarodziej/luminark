@@ -11,9 +11,11 @@ import pl.przemyslawpitus.luminark.domain.library.building.strategies.SeriesStra
 import pl.przemyslawpitus.luminark.domain.library.building.strategies.StandaloneFilmStrategy
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
+import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 
 class LibraryParser(
     private val fileLister: FilesLister,
+    private val posterProvider: ImageFilePosterProvider,
     private val videoExtensions: Set<String>,
     private val lumiDirectoryConfigProvider: LumiDirectoryConfigProvider,
 ) {
@@ -45,6 +47,7 @@ class LibraryParser(
             subdirectories = subdirectories,
             videoFiles = videoFiles,
             fileLister = fileLister,
+            posterProvider = posterProvider,
             videoExtensions = videoExtensions,
             lumiDirectoryConfig = lumiDirectoryConfig,
         )

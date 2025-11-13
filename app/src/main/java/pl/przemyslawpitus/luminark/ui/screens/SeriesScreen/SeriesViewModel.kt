@@ -11,9 +11,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.domain.library.EntryId
+import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.domain.library.Series
+import pl.przemyslawpitus.luminark.domain.library.building.strategies.ChildType.Season
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
@@ -63,13 +65,13 @@ class SeriesViewModel @Inject constructor(
                     name = it.name,
                     type = ListEntryUiModel.Type.PlayablesGroup(it.episodes.size),
                     onClick = { onSeasonClicked(it.id) },
-                    onFocus = { }
+                    onFocus = { onSeasonFocused(it) }
                 )
             }
 
             _uiState.value = SeriesUiState(
                 entries = entries,
-                posterPath = PosterFetcher.PosterPath(series.rootRelativePath),
+                posterPath = PosterFetcher.PosterPath(series.rootRelativePosterPath),
                 isLoading = false,
                 name = series.name,
                 tags = series.tags,
@@ -81,5 +83,11 @@ class SeriesViewModel @Inject constructor(
         viewModelScope.launch {
             _navigationEvent.send(NavigationEvent.ToSeriesEpisodes(episodesGroupId))
         }
+    }
+
+    private fun onSeasonFocused(season: EpisodesGroup) {
+        _uiState.value = _uiState.value.copy(
+            posterPath = PosterFetcher.PosterPath(season.rootRelativePosterPath)
+        )
     }
 }

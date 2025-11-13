@@ -69,7 +69,7 @@ class MediaGroupingEpisodesGroupViewModel @Inject constructor(
 
             _uiState.value = MediaGroupingEpisodesGroupUiState(
                 entries = entries,
-                posterPath = PosterFetcher.PosterPath(mediaGroupingEpisodesGroup.rootRelativePath),
+                posterPath = PosterFetcher.PosterPath(mediaGroupingEpisodesGroup.rootRelativePosterPath),
                 isLoading = false,
                 name = mediaGroupingEpisodesGroup.name,
                 breadcrumbs = "Biblioteka / ${mediaGrouping.name.name}",

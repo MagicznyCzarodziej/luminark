@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.FilmSeries
+import pl.przemyslawpitus.luminark.domain.library.FilmSeriesFilm
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.infrastructure.posterCache.coil.PosterFetcher
@@ -56,18 +57,24 @@ class FilmSeriesViewModel @Inject constructor(
                     name = it.name,
                     type = ListEntryUiModel.Type.Single,
                     onClick = { playVideo(it.videoFiles.first().absolutePath) },
-                    onFocus = { }
+                    onFocus = { onFilmFocused(it) }
                 )
             }
 
             _uiState.value = FilmSeriesUiState(
                 entries = entries,
-                posterPath = PosterFetcher.PosterPath(filmSeries.rootRelativePath),
+                posterPath = PosterFetcher.PosterPath(filmSeries.rootRelativePosterPath),
                 isLoading = false,
                 name = filmSeries.name,
-                breadcrumbs = "Biblioteka / ${filmSeries.name.name}",
+                breadcrumbs = "Biblioteka",
                 tags = filmSeries.tags,
             )
         }
+    }
+
+    private fun onFilmFocused(film: FilmSeriesFilm) {
+        _uiState.value = _uiState.value.copy(
+            posterPath = PosterFetcher.PosterPath(film.rootRelativePosterPath)
+        )
     }
 }

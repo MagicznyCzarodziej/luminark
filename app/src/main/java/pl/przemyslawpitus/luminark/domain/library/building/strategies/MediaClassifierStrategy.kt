@@ -4,6 +4,7 @@ import pl.przemyslawpitus.luminark.domain.fileSystem.DirectoryEntry
 import pl.przemyslawpitus.luminark.domain.fileSystem.FilesLister
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
+import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 
 interface MediaClassifierStrategy {
     suspend fun isApplicable(context: ClassificationContext): Boolean
@@ -15,6 +16,7 @@ data class ClassificationContext(
     val subdirectories: List<DirectoryEntry>,
     val videoFiles: List<DirectoryEntry>,
     val fileLister: FilesLister,
+    val posterProvider: ImageFilePosterProvider,
     val videoExtensions: Set<String>,
     val lumiDirectoryConfig: LumiDirectoryConfig
 )

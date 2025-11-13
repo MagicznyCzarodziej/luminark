@@ -7,7 +7,7 @@ import java.util.regex.Pattern
 
 private val SEASON_NUMBER_PATTERN: Pattern = Pattern.compile("""(?i)Season\s*(\d+)|S(\d+)|(\d+)""")
 private val EPISODE_FILE_PATTERN: Pattern = Pattern.compile(
-    """(?i).*\s-\sS(\d{2})E(\d{2})(?:\s-\s(.*))?\.\w+$"""
+    """(?i).*\s-\sS(\d{2})E(\d{2})(?:\s(.*))?\.\w+$"""
 )
 private val GENERIC_NUMBER_PATTERN: Pattern = Pattern.compile("(\\d+)")
 

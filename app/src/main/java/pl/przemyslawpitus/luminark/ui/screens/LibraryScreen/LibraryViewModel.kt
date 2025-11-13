@@ -42,43 +42,11 @@ class LibraryViewModel @Inject constructor(
     private val videoPlayer: VideoPlayer,
     private val libraryRepository: LibraryRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = libraryRepository.entries
-        .map { entries ->
-            LibraryUiState(
-                entries = entries.map {
-                    ListEntryUiModel(
-                        name = it.name,
-                        type = when (it) {
-                            is StandaloneFilm -> ListEntryUiModel.Type.Single
-                            is Series -> ListEntryUiModel.Type.Series(it.seasons.size)
-                            is MediaGrouping -> ListEntryUiModel.Type.Grouping(it.entries.size)
-                            is FilmSeries -> ListEntryUiModel.Type.PlayablesGroup(it.films.size)
-                        },
-                        onClick = {
-                            viewModelScope.launch {
-                                when (it) {
-                                    is Series -> _navigationEvent.send(NavigationEvent.ToSeries(it.id))
-
-                                    is StandaloneFilm -> videoPlayer.playVideo(it.videoFiles.first().absolutePath)
-
-                                    is MediaGrouping -> _navigationEvent.send(NavigationEvent.ToMediaGrouping(it.id))
-
-                                    is FilmSeries -> _navigationEvent.send(NavigationEvent.ToFilmSeries(it.id))
-                                }
-                            }
-                        },
-                        onFocus = { onEntryFocused(it) }
-                    )
-                },
-                isLoading = false,
-            )
-        }
+        .map(::mapToUiState)
         .stateIn(
             scope = viewModelScope,
-            // Rozpoczyna kolekcjonowanie, gdy UI jest aktywne i utrzymuje je przez 5s po zniknięciu UI
             started = SharingStarted.WhileSubscribed(5_000),
-            // Stan początkowy, zanim cokolwiek przepłynie z repozytorium
             initialValue = LibraryUiState(isLoading = true)
         )
 
@@ -100,9 +68,47 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    private fun onEntryFocused(entry: LibraryEntry) {
+    private fun mapToUiState(entries: List<LibraryEntry>): LibraryUiState {
+        return LibraryUiState(
+            entries = entries.map { entry ->
+                entry.toListEntryUiModel(
+                    onEntryClick = ::onEntryClicked,
+                    onEntryFocus = ::onEntryFocused
+                )
+            },
+            isLoading = false,
+        )
+    }
+
+    private fun onEntryClicked(entry: LibraryEntry) {
         viewModelScope.launch {
-            _posterPath.value = entry.rootRelativePath
+            when (entry) {
+                is Series -> _navigationEvent.send(NavigationEvent.ToSeries(entry.id))
+                is StandaloneFilm -> videoPlayer.playVideo(entry.videoFiles.first().absolutePath)
+                is MediaGrouping -> _navigationEvent.send(NavigationEvent.ToMediaGrouping(entry.id))
+                is FilmSeries -> _navigationEvent.send(NavigationEvent.ToFilmSeries(entry.id))
+            }
         }
     }
+
+    private fun onEntryFocused(entry: LibraryEntry) {
+        _posterPath.value = entry.rootRelativePosterPath
+    }
+}
+
+fun LibraryEntry.toListEntryUiModel(
+    onEntryClick: (LibraryEntry) -> Unit,
+    onEntryFocus: (LibraryEntry) -> Unit
+): ListEntryUiModel {
+    return ListEntryUiModel(
+        name = this.name,
+        type = when (this) {
+            is StandaloneFilm -> ListEntryUiModel.Type.Single
+            is Series -> ListEntryUiModel.Type.Series(this.seasons.size)
+            is MediaGrouping -> ListEntryUiModel.Type.Grouping(this.entries.size)
+            is FilmSeries -> ListEntryUiModel.Type.PlayablesGroup(this.films.size)
+        },
+        onClick = { onEntryClick(this) },
+        onFocus = { onEntryFocus(this) },
+    )
 }

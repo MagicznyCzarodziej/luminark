@@ -30,11 +30,7 @@ fun LibraryScreen(
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.FilmSeries(event.filmSeriesId.id))
-                is NavigationEvent.ToMediaGrouping -> navController.navigate(Destination.MediaGrouping(event.groupingId.id))
-                is NavigationEvent.ToSeries -> navController.navigate(Destination.Series(event.seriesId.id))
-            }
+            handleNavigationEvent(event, navController)
         }
     }
 
@@ -69,5 +65,16 @@ fun LibraryScreen(
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
         }
+    }
+}
+
+private fun handleNavigationEvent(
+    event: NavigationEvent,
+    navController: NavController
+) {
+    when (event) {
+        is NavigationEvent.ToFilmSeries -> navController.navigate(Destination.FilmSeries(event.filmSeriesId.id))
+        is NavigationEvent.ToMediaGrouping -> navController.navigate(Destination.MediaGrouping(event.groupingId.id))
+        is NavigationEvent.ToSeries -> navController.navigate(Destination.Series(event.seriesId.id))
     }
 }

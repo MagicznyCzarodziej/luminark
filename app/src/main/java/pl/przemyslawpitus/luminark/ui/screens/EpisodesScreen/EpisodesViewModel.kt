@@ -68,7 +68,7 @@ class EpisodesViewModel @Inject constructor(
 
             _uiState.value = EpisodesUiState(
                 entries = entries,
-                posterPath = PosterFetcher.PosterPath(episodesGroup.rootRelativePath),
+                posterPath = PosterFetcher.PosterPath(episodesGroup.rootRelativePosterPath),
                 isLoading = false,
                 name = episodesGroup.name,
                 breadcrumbs = "Biblioteka / ${series!!.name.name}",

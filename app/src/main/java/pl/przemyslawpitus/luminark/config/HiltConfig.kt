@@ -33,7 +33,7 @@ object HiltConfig {
     @Singleton
     suspend fun smbFileRepository(): SmbFileRepository {
         val smbFileRepository = SmbFileRepository()
-        smbFileRepository.connectToShare()
+        smbFileRepository.ensureConnected()
         return smbFileRepository
     }
 
@@ -59,6 +59,7 @@ object HiltConfig {
     @Singleton
     fun libraryParser(
         fileLister: FilesLister,
+        posterProvider: ImageFilePosterProvider,
         lumiDirectoryConfigProvider: LumiDirectoryConfigProvider,
         @ApplicationContext context: Context,
     ): LibraryParser {
@@ -66,6 +67,7 @@ object HiltConfig {
 
         return LibraryParser(
             fileLister = fileLister,
+            posterProvider = posterProvider,
             videoExtensions = videoExtensions,
             lumiDirectoryConfigProvider = lumiDirectoryConfigProvider,
         )
@@ -119,10 +121,12 @@ object HiltConfig {
     @Singleton
     fun imageFilePosterProvider(
         fileRepository: FileRepository,
+        filesLister: FilesLister,
         @ApplicationContext context: Context,
     ): ImageFilePosterProvider {
         return ImageFilePosterProvider(
             fileRepository = fileRepository,
+            filesLister = filesLister,
             posterFileName = context.getString(R.string.poster_file_name_without_extension),
             supportedFileExtensions = context.resources.getStringArray(R.array.poster_image_extensions).toSet()
         )

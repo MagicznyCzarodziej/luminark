@@ -27,17 +27,11 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
     @Inject
     lateinit var smbFileRepository: SmbFileRepository
 
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
     override fun onCreate() {
         super.onCreate()
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
-        }
-
-        applicationScope.launch {
-            smbFileRepository.connectToShare()
         }
     }
 

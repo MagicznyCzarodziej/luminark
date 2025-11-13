@@ -9,6 +9,7 @@ import pl.przemyslawpitus.luminark.domain.library.VideoFile
 import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfig
 import pl.przemyslawpitus.luminark.randomEntryId
+import java.nio.file.Path
 import java.util.regex.Pattern
 
 val FILM_SERIES_FILM_NUMBER_PATTERN: Pattern = Pattern.compile("""^\[(\d+)\]\s""")
@@ -22,14 +23,24 @@ class FilmSeriesStrategy : MediaClassifierStrategy {
     }
 
     override suspend fun classify(context: ClassificationContext): LibraryEntry {
+        val posterPath =
+            context.posterProvider.findPosterImageWithFallback(directoryAbsolutePath = context.directory.absolutePath)
+
         val films = context.subdirectories.mapNotNull { filmDir ->
-            processFilm(context, filmDir)
+            processFilm(
+                context = context,
+                filmDir = filmDir,
+                mainPosterPath = posterPath
+            )
         }
+            .sortedBy { it.name.name }
+            .sortedBy { it.ordinalNumber }
 
         return FilmSeries(
             id = randomEntryId(),
             name = FileNameParser.parseName(context.directory.name),
             rootRelativePath = context.directory.absolutePath,
+            rootRelativePosterPath = posterPath,
             tags = context.lumiDirectoryConfig.tags,
             franchise = context.lumiDirectoryConfig.franchise,
             films = films,
@@ -39,6 +50,7 @@ class FilmSeriesStrategy : MediaClassifierStrategy {
     private suspend fun processFilm(
         context: ClassificationContext,
         filmDir: DirectoryEntry,
+        mainPosterPath: Path,
     ): FilmSeriesFilm? {
         val videoFiles = context.fileLister.listFilesAndDirectories(filmDir.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
@@ -47,10 +59,14 @@ class FilmSeriesStrategy : MediaClassifierStrategy {
 
         if (videoFiles.isEmpty()) return null
 
+        val posterPath = context.posterProvider.findPosterImage(directoryAbsolutePath = filmDir.absolutePath)
+            ?: mainPosterPath
+
         return FilmSeriesFilm(
             id = randomEntryId(),
             name = FileNameParser.parseName(filmDir.name),
             rootRelativePath = filmDir.absolutePath,
+            rootRelativePosterPath = posterPath,
             ordinalNumber = getOrdinalNumberFromName(filmDir.name) ?: 0,
             videoFiles = videoFiles
         )

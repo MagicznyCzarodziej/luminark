@@ -26,10 +26,13 @@ class StandaloneFilmStrategy : MediaClassifierStrategy {
             }
             .sortedBy { it.name.name }
 
+        val posterPath = context.posterProvider.findPosterImageWithFallback(directoryAbsolutePath = context.directory.absolutePath)
+
         return StandaloneFilm(
             id = randomEntryId(),
             name = FileNameParser.parseName(context.directory.name),
             rootRelativePath = context.directory.absolutePath, // TODO
+            rootRelativePosterPath = posterPath,
             tags = context.lumiDirectoryConfig.tags,
             franchise = context.lumiDirectoryConfig.franchise,
             videoFiles = videoFiles

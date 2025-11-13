@@ -32,7 +32,7 @@ class PosterFetcher(
             }
 
             // No image in the disk cache, try to fetch from external source
-            val imageBytes: ByteArray? = posterProvider.findPosterImage(posterPath.path)
+            val imageBytes: ByteArray? = posterProvider.getPosterImage(posterPath.path)
 
             // If image was not found in the external source, stop processing
             if (imageBytes == null) {
