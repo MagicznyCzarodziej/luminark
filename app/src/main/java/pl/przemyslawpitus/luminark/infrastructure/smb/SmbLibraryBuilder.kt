@@ -7,7 +7,7 @@ import kotlinx.coroutines.withContext
 import pl.przemyslawpitus.luminark.domain.library.Library
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
-import pl.przemyslawpitus.luminark.domain.utils.NaturalOrderComparator
+import pl.przemyslawpitus.luminark.domain.utils.LibraryStyleComparator
 import timber.log.Timber
 import java.nio.file.Path
 
@@ -19,7 +19,7 @@ class SmbLibraryBuilder(
         Timber.d("Listing the root library directory")
         val rootDirs = smbFileRepository.listFilesAndDirectories(rootLibraryPath)
             .filter { it.isDirectory }
-            .sortedWith(compareBy(NaturalOrderComparator) { it.name })
+            .sortedWith(compareBy(LibraryStyleComparator) { it.name })
 
         Timber.d("Building the library")
         val libraryEntries = rootDirs.map { dir ->

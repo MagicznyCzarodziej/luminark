@@ -6,6 +6,7 @@ import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.library.Name
 import pl.przemyslawpitus.luminark.domain.library.Series
+import pl.przemyslawpitus.luminark.domain.library.building.EPISODE_FILE_PATTERN
 import pl.przemyslawpitus.luminark.domain.library.building.FileNameParser
 import pl.przemyslawpitus.luminark.randomEntryId
 import java.nio.file.Path
@@ -62,7 +63,7 @@ class SeriesStrategy : MediaClassifierStrategy {
         if (episodeFiles.isEmpty()) return null
 
         val seasonNumberFromName = FileNameParser.extractSeasonNumber(seasonDir.name)
-        val seasonNumberFromEpisode =
+        val seasonNumberFromEpisode = // Some series have titles instead of season names, e.g.: "Saenai Heroine no Sodatekata .flat"
             episodeFiles.firstNotNullOfOrNull { FileNameParser.extractSeasonNumberFromEpisode(it.name) }
 
         val episodes = episodeFiles
@@ -97,7 +98,7 @@ class SeriesStrategy : MediaClassifierStrategy {
         val files = context.fileLister.listFilesAndDirectories(subdirectory.absolutePath)
             .filter { it.isFile && FileNameParser.isVideoFile(it.name, context.videoExtensions) }
         if (files.isEmpty()) return ChildType.Empty
-        val hasEpisodePattern = files.any { FileNameParser.extractSeasonNumberFromEpisode(it.name) != null }
+        val hasEpisodePattern = files.any { EPISODE_FILE_PATTERN.matchesTextExactly(it.name) }
         return when {
             files.size > 1 || hasEpisodePattern -> ChildType.Season(subdirectory)
             files.size == 1 && !hasEpisodePattern -> ChildType.Film(subdirectory)

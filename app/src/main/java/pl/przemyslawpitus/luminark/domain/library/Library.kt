@@ -16,7 +16,23 @@ data class EntryId(
 data class Name(
     val name: String,
     val alternativeName: String? = null,
-)
+    val sortName: String = getSortName(name) // Name, but with articles (a, an, the) moved to the end, after a comma. E.g.: "Batman, The"
+) {
+    companion object {
+        private fun getSortName(name: String): String {
+            // Find if the string starts with any of the defined articles
+            for (article in listOf("a ", "an ", "the ")) {
+                if (name.startsWith(article, ignoreCase = true)) {
+                    // Move the article after the title
+                    return name.substring(article.length) + ", " + name.substring(0..article.length-1)
+                }
+            }
+
+            return name
+        }
+    }
+}
+
 @Serializable
 data class Library(
     val entries: List<LibraryEntry>
@@ -126,6 +142,7 @@ data class MediaGroupingFilm(
     override val name: Name,
     override val rootRelativePath: Path,
     override val rootRelativePosterPath: Path,
+    val ordinalNumber: Int,
     val videoFiles: List<VideoFile>,
 ): Directory, MediaGroupingEntry
 

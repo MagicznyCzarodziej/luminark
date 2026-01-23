@@ -60,12 +60,15 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
                     if (it is EpisodesGroup) it.ordinalNumber else null
                 },
                 {
+                    // Quaternary sort key: Sort films by their ordinal number
+                    if (it is MediaGroupingFilm) it.ordinalNumber else null
+                },
+                {
                     // Tertiary sort key: Sort films by their name
                     if (it is MediaGroupingFilm) it.name.name else null
                 }
             )
         )
-
 
         return MediaGrouping(
             id = randomEntryId(),
@@ -96,7 +99,8 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
             name = FileNameParser.parseName(filmDir.name),
             rootRelativePath = filmDir.absolutePath,
             rootRelativePosterPath = posterPath,
-            videoFiles = videoFiles
+            ordinalNumber = FileNameParser.getOrdinalNumberFromName(filmDir.name) ?: 0,
+            videoFiles = videoFiles,
         )
     }
 
@@ -133,7 +137,12 @@ class MediaGroupingStrategy : MediaClassifierStrategy {
     }
 
     private fun parseEpisode(file: DirectoryEntry, context: ClassificationContext): Episode {
-        val details = FileNameParser.parseEpisodeDetails(file.name, context.videoExtensions, context.directory.name)
+        val details = FileNameParser.parseEpisodeDetails(
+            fileName = file.name,
+            videoExtensions = context.videoExtensions,
+            seriesName = context.directory.name
+        )
+
         return Episode(
             id = randomEntryId(),
             name = Name(details.title),

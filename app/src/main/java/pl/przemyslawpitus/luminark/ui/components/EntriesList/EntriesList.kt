@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import pl.przemyslawpitus.luminark.domain.library.Name
+import pl.przemyslawpitus.luminark.ui.screens.LibraryScreen.EntriesListState
 
 data class ListEntryUiModel(
     val name: Name,
@@ -41,9 +43,14 @@ data class ListEntryUiModel(
 fun EntriesList(
     entries: List<ListEntryUiModel>,
     modifier: Modifier = Modifier,
+    state: EntriesListState? = null
 ) {
     var lastFocusedIndex by rememberSaveable { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
+
+    SideEffect {
+        state?.lazyListState = listState
+    }
 
     LazyColumn(
         state = listState,
@@ -67,6 +74,7 @@ fun EntriesList(
     ) {
         itemsIndexed(entries) { index, entry ->
             val focusRequester = remember { FocusRequester() }
+            state?.focusRequesters[index] = focusRequester
 
             ClickableListEntry(
                 focusRequester = focusRequester,
