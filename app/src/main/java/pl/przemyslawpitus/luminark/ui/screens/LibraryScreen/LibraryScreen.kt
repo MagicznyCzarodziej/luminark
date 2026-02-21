@@ -1,5 +1,7 @@
 package pl.przemyslawpitus.luminark.ui.screens.LibraryScreen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -114,7 +117,7 @@ fun LibraryScreen(
                 LazyColumn(
                     modifier = Modifier
                         .height(300.dp)
-                        .width(24.dp)
+                        .width(28.dp)
                         .padding(start = 8.dp)
                         .focusRestorer()
                         .align(Alignment.CenterVertically),
@@ -122,16 +125,24 @@ fun LibraryScreen(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     items(symbols) { letter ->
+                        val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val isFocused by interactionSource.collectIsFocusedAsState()
+
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) { // Remove margin between buttons
                             TextButton(
                                 onClick = { entriesListState.scrollToLetter(letter) },
-                                contentPadding = PaddingValues(2.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                interactionSource = interactionSource,
                                 modifier = Modifier
                                     .heightIn(min = 1.dp)
+                                    .background(
+                                        color = if (isFocused) Color.White else Color.Transparent,
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
                             ) {
                                 Text(
                                     text = letter.toString(),
-                                    color = Color.White
+                                    color = if (isFocused) Color.Black else Color.White
                                 )
                             }
                         }
