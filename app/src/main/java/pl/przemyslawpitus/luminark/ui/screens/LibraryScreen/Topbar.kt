@@ -13,8 +13,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,7 +27,13 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 
 @Composable
-fun TopBar() {
+fun TopBar(
+    onFilterChanged: (EntriesFilter) -> Unit
+) {
+    var focusedFilter by remember {
+        mutableStateOf<EntriesFilter?>(null)
+    }
+
     Row(
         modifier = Modifier.padding(start = 16.dp, top = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -42,52 +53,61 @@ fun TopBar() {
         )
         Box(
             modifier = Modifier
+                .onFocusChanged {
+                    focusedFilter = if (it.isFocused) EntriesFilter.ALL else null
+                }
                 .background(
-                    Color(0xFF1A1B2C),
-                    RoundedCornerShape(4.dp)
+                    color = if (focusedFilter == EntriesFilter.ALL) Color.White else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
                 )
                 .clickable {
-                    println(" Filter all")
+                    onFilterChanged(EntriesFilter.ALL)
                 }
         ) {
             Text(
                 text = "All",
                 fontSize = 20.sp,
-                color = Color(0xFFFFFFFF),
+                color = if (focusedFilter == EntriesFilter.ALL) Color.Black else Color.White,
                 modifier = Modifier.padding(16.dp, 2.dp)
             )
         }
         Box(
             modifier = Modifier
+                .onFocusChanged {
+                    focusedFilter = if (it.isFocused) EntriesFilter.FILMS else null
+                }
                 .background(
-                    Color.Transparent,
-                    RoundedCornerShape(4.dp)
+                    color = if (focusedFilter == EntriesFilter.FILMS) Color.White else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
                 )
                 .clickable {
-                    println(" Filter films")
+                    onFilterChanged(EntriesFilter.FILMS)
                 }
         ) {
             Text(
                 text = "Films",
                 fontSize = 20.sp,
-                color = Color(0xFFFFFFFF),
+                color = if (focusedFilter == EntriesFilter.FILMS) Color.Black else Color.White,
                 modifier = Modifier.padding(16.dp, 2.dp)
             )
         }
         Box(
             modifier = Modifier
+                .onFocusChanged {
+                    focusedFilter = if (it.isFocused) EntriesFilter.SERIES else null
+                }
                 .background(
-                    Color.Transparent,
-                    RoundedCornerShape(4.dp)
+                    color = if (focusedFilter == EntriesFilter.SERIES) Color.White else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
                 )
                 .clickable {
-                    println(" Filter series")
+                    onFilterChanged(EntriesFilter.SERIES)
                 }
         ) {
             Text(
                 text = "Series",
                 fontSize = 20.sp,
-                color = Color(0xFFFFFFFF),
+                color = if (focusedFilter == EntriesFilter.SERIES) Color.Black else Color.White,
                 modifier = Modifier.padding(16.dp, 2.dp)
             )
         }

@@ -150,7 +150,9 @@ fun LibraryScreen(
                     }
                 }
                 Column {
-                    TopBar()
+                    TopBar(
+                        onFilterChanged = viewModel::filterEntries
+                    )
                     EntriesList(
                         entries = uiState.entries,
                         nameDisplayStrategy = NameDisplayStrategy.LIBRARY,

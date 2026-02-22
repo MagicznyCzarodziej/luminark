@@ -7,16 +7,18 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.domain.VideoPlayer
 import pl.przemyslawpitus.luminark.domain.library.EntryId
+import pl.przemyslawpitus.luminark.domain.library.EpisodesGroup
 import pl.przemyslawpitus.luminark.domain.library.FilmSeries
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
+import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
 import pl.przemyslawpitus.luminark.domain.library.Series
 import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
@@ -42,13 +44,17 @@ class LibraryViewModel @Inject constructor(
     private val videoPlayer: VideoPlayer,
     private val libraryRepository: LibraryRepository,
 ) : ViewModel() {
-    val uiState: StateFlow<LibraryUiState> = libraryRepository.entries
-        .map(::mapToUiState)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = LibraryUiState(isLoading = true)
-        )
+    private val _entriesFilter = MutableStateFlow<EntriesFilter>(EntriesFilter.ALL)
+
+    val uiState: StateFlow<LibraryUiState> = combine(
+        libraryRepository.entries,
+        _entriesFilter,
+        ::mapToUiState
+    ).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = LibraryUiState(isLoading = true)
+    )
 
     private val _navigationEvent = Channel<NavigationEvent>()
     val navigationEvent = _navigationEvent.receiveAsFlow()
@@ -68,14 +74,26 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    private fun mapToUiState(entries: List<LibraryEntry>): LibraryUiState {
+    fun filterEntries(filter: EntriesFilter) {
+        _entriesFilter.value = filter
+    }
+
+    private fun mapToUiState(entries: List<LibraryEntry>, filter: EntriesFilter): LibraryUiState {
         return LibraryUiState(
-            entries = entries.map { entry ->
-                entry.toListEntryUiModel(
-                    onEntryClick = ::onEntryClicked,
-                    onEntryFocus = ::onEntryFocused
-                )
-            },
+            entries = entries
+                .filter { entry ->
+                    when (filter) {
+                        EntriesFilter.FILMS -> entry is StandaloneFilm || entry is FilmSeries || (entry is MediaGrouping && entry.entries.any { it is MediaGroupingFilm })
+                        EntriesFilter.SERIES -> entry is Series || (entry is MediaGrouping && entry.entries.any { it is EpisodesGroup })
+                        EntriesFilter.ALL -> true
+                    }
+                }
+                .map { entry ->
+                    entry.toListEntryUiModel(
+                        onEntryClick = ::onEntryClicked,
+                        onEntryFocus = ::onEntryFocused
+                    )
+                },
             isLoading = false,
         )
     }
@@ -111,4 +129,8 @@ fun LibraryEntry.toListEntryUiModel(
         onClick = { onEntryClick(this) },
         onFocus = { onEntryFocus(this) },
     )
+}
+
+enum class EntriesFilter {
+    ALL, FILMS, SERIES
 }
