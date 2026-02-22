@@ -27,6 +27,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
@@ -37,6 +38,7 @@ import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
 @Composable
 fun Sidebar(
     rebuildLibrary: () -> Unit,
+    filterByTag: (tag: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
@@ -87,9 +89,22 @@ fun Sidebar(
                 "Rebuild the library",
                 onClick = { rebuildLibrary() }
             )
+            Text(
+                "Tags",
+                color = Color.Gray,
+                fontSize = 10.sp,
+            )
             MenuItem(
-                "Something else",
-                onClick = { println("Click") },
+                "All",
+                onClick = { filterByTag(null) },
+            )
+            MenuItem(
+                "Anime",
+                onClick = { filterByTag("anime") },
+            )
+            MenuItem(
+                "MCU",
+                onClick = { filterByTag("mcu") },
                 isLast = true,
             )
         }

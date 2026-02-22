@@ -21,6 +21,7 @@ import pl.przemyslawpitus.luminark.domain.library.MediaGrouping
 import pl.przemyslawpitus.luminark.domain.library.MediaGroupingFilm
 import pl.przemyslawpitus.luminark.domain.library.Series
 import pl.przemyslawpitus.luminark.domain.library.StandaloneFilm
+import pl.przemyslawpitus.luminark.domain.library.Taggable
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -45,10 +46,12 @@ class LibraryViewModel @Inject constructor(
     private val libraryRepository: LibraryRepository,
 ) : ViewModel() {
     private val _entriesFilter = MutableStateFlow<EntriesFilter>(EntriesFilter.ALL)
+    private val _tagFilter = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<LibraryUiState> = combine(
         libraryRepository.entries,
         _entriesFilter,
+        _tagFilter,
         ::mapToUiState
     ).stateIn(
         scope = viewModelScope,
@@ -78,7 +81,11 @@ class LibraryViewModel @Inject constructor(
         _entriesFilter.value = filter
     }
 
-    private fun mapToUiState(entries: List<LibraryEntry>, filter: EntriesFilter): LibraryUiState {
+    fun filterByTag(tag: String?) {
+        _tagFilter.value = tag
+    }
+
+    private fun mapToUiState(entries: List<LibraryEntry>, filter: EntriesFilter, tagFilter: String?): LibraryUiState {
         return LibraryUiState(
             entries = entries
                 .filter { entry ->
@@ -87,6 +94,9 @@ class LibraryViewModel @Inject constructor(
                         EntriesFilter.SERIES -> entry is Series || (entry is MediaGrouping && entry.entries.any { it is EpisodesGroup })
                         EntriesFilter.ALL -> true
                     }
+                }
+                .filter { entry ->
+                    tagFilter == null || (entry is Taggable && entry.tags.map { it.lowercase() }.contains(tagFilter))
                 }
                 .map { entry ->
                     entry.toListEntryUiModel(

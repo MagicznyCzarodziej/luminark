@@ -1,6 +1,7 @@
 package pl.przemyslawpitus.luminark.ui.screens.LibraryScreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -126,7 +127,7 @@ fun LibraryScreen(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     items(symbols) { letter ->
-                        val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        val interactionSource = remember { MutableInteractionSource() }
                         val isFocused by interactionSource.collectIsFocusedAsState()
 
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) { // Remove margin between buttons
@@ -165,6 +166,7 @@ fun LibraryScreen(
             }
             Sidebar(
                 rebuildLibrary = { viewModel.rebuildLibrary() },
+                filterByTag = viewModel::filterByTag,
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
         }
