@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.EntriesList
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
+import pl.przemyslawpitus.luminark.ui.components.EntriesList.NameDisplayStrategy
 import pl.przemyslawpitus.luminark.ui.components.Poster.Poster
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 
@@ -152,6 +153,7 @@ fun LibraryScreen(
                     TopBar()
                     EntriesList(
                         entries = uiState.entries,
+                        nameDisplayStrategy = NameDisplayStrategy.LIBRARY,
                         modifier = Modifier
                             .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
                             .focusRestorer(),

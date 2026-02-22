@@ -38,11 +38,15 @@ data class ListEntryUiModel(
         data class Grouping(val size: Int) : Type()
     }
 }
+enum class NameDisplayStrategy {
+    REGULAR, LIBRARY,
+}
 
 @Composable
 fun EntriesList(
-    entries: List<ListEntryUiModel>,
     modifier: Modifier = Modifier,
+    entries: List<ListEntryUiModel>,
+    nameDisplayStrategy: NameDisplayStrategy = NameDisplayStrategy.REGULAR,
     state: EntriesListState? = null
 ) {
     var lastFocusedIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -91,6 +95,7 @@ fun EntriesList(
                 ListEntry(
                     name = entry.name,
                     type = entry.type,
+                    nameDisplayStrategy = nameDisplayStrategy,
                     isFocused = lastFocusedIndex == index,
                 )
             }

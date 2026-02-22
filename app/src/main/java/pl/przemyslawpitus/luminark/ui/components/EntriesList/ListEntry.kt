@@ -24,6 +24,7 @@ import pl.przemyslawpitus.luminark.domain.library.Name
 fun ListEntry(
     name: Name,
     type: ListEntryUiModel.Type,
+    nameDisplayStrategy: NameDisplayStrategy,
     isFocused: Boolean,
 ) {
     val right: @Composable () -> Unit = when (type) {
@@ -87,7 +88,7 @@ fun ListEntry(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = name.name,
+                text = if (nameDisplayStrategy == NameDisplayStrategy.LIBRARY) name.sortName else name.name,
                 color = Color(0xFFF5F5F5),
                 fontSize = 22.sp,
             )
