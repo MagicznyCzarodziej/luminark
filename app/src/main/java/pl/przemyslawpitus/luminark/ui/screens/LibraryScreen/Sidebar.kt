@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -36,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
-import pl.przemyslawpitus.luminark.letIf
 import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
 
 
@@ -44,7 +42,7 @@ import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
 fun Sidebar(
     rebuildLibrary: () -> Unit,
     filterByTag: (tag: String?) -> Unit,
-    entriesListFocusRequester: FocusRequester,
+    onExitSidebar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
@@ -82,16 +80,6 @@ fun Sidebar(
                     drawerState.setValue(if (it.hasFocus) DrawerValue.Open else DrawerValue.Closed)
                 }
             }
-            .onPreviewKeyEvent { event ->
-                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                when (event.key) {
-                    Key.DirectionLeft, Key.DirectionRight -> {
-                        entriesListFocusRequester.requestFocus()
-                        true
-                    }
-                    else -> false
-                }
-            }
             .focusGroup()
     ) {
         Column(
@@ -103,7 +91,8 @@ fun Sidebar(
         ) {
             MenuItem(
                 "Rebuild the library",
-                onClick = { rebuildLibrary() }
+                onClick = { rebuildLibrary() },
+                onExitSidebar = onExitSidebar,
             )
             Text(
                 "Tags",
@@ -113,15 +102,18 @@ fun Sidebar(
             MenuItem(
                 "All",
                 onClick = { filterByTag(null) },
+                onExitSidebar = onExitSidebar,
             )
             MenuItem(
                 "Anime",
                 onClick = { filterByTag("anime") },
+                onExitSidebar = onExitSidebar,
             )
             MenuItem(
                 "MCU",
                 onClick = { filterByTag("mcu") },
                 isLast = true,
+                onExitSidebar = onExitSidebar,
             )
         }
     }
@@ -131,14 +123,23 @@ fun Sidebar(
 private fun MenuItem(
     text: String,
     onClick: () -> Unit,
+    onExitSidebar: () -> Unit,
     isLast: Boolean = false,
 ) {
     Text(
         text,
         color = Color.White,
         modifier = Modifier
-            .letIf(isLast) { it: Modifier ->
-                it.focusProperties { down = FocusRequester.Cancel }
+            .onPreviewKeyEvent { event ->
+                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (event.key) {
+                    Key.DirectionLeft, Key.DirectionRight -> {
+                        onExitSidebar()
+                        true
+                    }
+                    Key.DirectionDown -> isLast
+                    else -> false
+                }
             }
             .focusableBackground(
                 unfocusedColor = Color.Transparent,

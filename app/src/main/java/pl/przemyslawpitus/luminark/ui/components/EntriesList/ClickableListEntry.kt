@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -26,11 +29,15 @@ fun ClickableListEntry(
     onEntryClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val isSelected = lastFocusedIndex == index
+    var isFocused by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .onFocusChanged { focusState ->
+                isFocused = focusState.isFocused
                 onFocusChange(focusState.isFocused)
             }
             .clickable(
@@ -39,18 +46,19 @@ fun ClickableListEntry(
                 onClick = { onEntryClick() }
             )
             .background(
-                brush = if (lastFocusedIndex == index) {
-                    Brush.linearGradient(
+                brush = when {
+                    isSelected && isFocused -> Brush.linearGradient(
                         0.0f to Color(0xFF1A2367),
                         0.9f to Color(0x000A0E23),
                         1f to Color.Transparent,
                     )
-                } else {
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Transparent
-                        )
+                    isSelected -> Brush.linearGradient(
+                        0.0f to Color(0x801A2367),
+                        0.9f to Color(0x000A0E23),
+                        1f to Color.Transparent,
+                    )
+                    else -> Brush.linearGradient(
+                        colors = listOf(Color.Transparent, Color.Transparent)
                     )
                 },
                 shape = RoundedCornerShape(4.dp)

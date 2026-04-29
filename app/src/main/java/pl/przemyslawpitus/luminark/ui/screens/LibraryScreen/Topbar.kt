@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -28,7 +30,8 @@ import androidx.tv.material3.Text
 
 @Composable
 fun TopBar(
-    onFilterChanged: (EntriesFilter) -> Unit
+    onFilterChanged: (EntriesFilter) -> Unit,
+    exitFocusRequester: FocusRequester,
 ) {
     var focusedFilter by remember {
         mutableStateOf<EntriesFilter?>(null)
@@ -53,6 +56,11 @@ fun TopBar(
         )
         Box(
             modifier = Modifier
+                .focusProperties {
+                    up = FocusRequester.Cancel
+                    left = FocusRequester.Cancel
+                    down = exitFocusRequester
+                }
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.ALL else null
                 }
@@ -73,6 +81,10 @@ fun TopBar(
         }
         Box(
             modifier = Modifier
+                .focusProperties {
+                    up = FocusRequester.Cancel
+                    down = exitFocusRequester
+                }
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.FILMS else null
                 }
@@ -93,6 +105,11 @@ fun TopBar(
         }
         Box(
             modifier = Modifier
+                .focusProperties {
+                    up = FocusRequester.Cancel
+                    right = FocusRequester.Cancel
+                    down = exitFocusRequester
+                }
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.SERIES else null
                 }

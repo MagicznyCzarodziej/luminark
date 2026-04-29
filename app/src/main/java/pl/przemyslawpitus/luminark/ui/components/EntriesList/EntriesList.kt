@@ -78,7 +78,9 @@ fun EntriesList(
     ) {
         itemsIndexed(entries) { index, entry ->
             val focusRequester = remember { FocusRequester() }
-            state?.focusRequesters[index] = focusRequester
+            state?.focusRequesters?.set(index, focusRequester)
+
+            val pendingFocusIndex = state?._pendingFocusIndex?.intValue ?: -1
 
             ClickableListEntry(
                 focusRequester = focusRequester,
@@ -86,6 +88,7 @@ fun EntriesList(
                 onFocusChange = { isFocused: Boolean ->
                     if (isFocused) {
                         lastFocusedIndex = index
+                        state?.onEntryFocused(index)
                         entry.onFocus()
                     }
                 },
@@ -100,7 +103,7 @@ fun EntriesList(
                 )
             }
 
-            if (index == lastFocusedIndex) {
+            if (index == lastFocusedIndex && pendingFocusIndex < 0) {
                 LaunchedEffect(Unit) {
                     focusRequester.requestFocus()
                 }
