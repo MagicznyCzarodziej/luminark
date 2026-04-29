@@ -35,6 +35,18 @@ android {
         versionName = "1.0"
     }
 
+    flavorDimensions += "environment"
+    productFlavors {
+        create("mock") {
+            dimension = "environment"
+            buildConfigField("boolean", "USE_MOCK", "true")
+        }
+        create("smb") {
+            dimension = "environment"
+            buildConfigField("boolean", "USE_MOCK", "false")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
