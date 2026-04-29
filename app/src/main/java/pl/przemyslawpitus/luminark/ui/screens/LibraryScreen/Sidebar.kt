@@ -26,6 +26,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.DrawerValue
@@ -39,6 +44,7 @@ import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
 fun Sidebar(
     rebuildLibrary: () -> Unit,
     filterByTag: (tag: String?) -> Unit,
+    entriesListFocusRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
@@ -74,6 +80,16 @@ fun Sidebar(
 
                 if (initializationComplete) {
                     drawerState.setValue(if (it.hasFocus) DrawerValue.Open else DrawerValue.Closed)
+                }
+            }
+            .onPreviewKeyEvent { event ->
+                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (event.key) {
+                    Key.DirectionLeft, Key.DirectionRight -> {
+                        entriesListFocusRequester.requestFocus()
+                        true
+                    }
+                    else -> false
                 }
             }
             .focusGroup()

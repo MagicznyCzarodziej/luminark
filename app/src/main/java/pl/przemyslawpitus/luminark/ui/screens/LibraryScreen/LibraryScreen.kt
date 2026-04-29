@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -83,6 +84,7 @@ fun LibraryScreen(
     val scope = rememberCoroutineScope()
 
     val symbolsListState = rememberLazyListState()
+    val entriesListFocusRequester = remember { FocusRequester() }
 
     val entriesListState = remember(uiState.entries) {
         EntriesListState(uiState.entries, scope)
@@ -158,7 +160,12 @@ fun LibraryScreen(
                         entries = uiState.entries,
                         nameDisplayStrategy = NameDisplayStrategy.LIBRARY,
                         modifier = Modifier
-                            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
+                            .padding(
+                                start = 16.dp,
+                                top = 16.dp,
+                                end = 16.dp,
+                            )
+                            .focusRequester(entriesListFocusRequester)
                             .focusRestorer(),
                         state = entriesListState
                     )
@@ -167,7 +174,8 @@ fun LibraryScreen(
             Sidebar(
                 rebuildLibrary = { viewModel.rebuildLibrary() },
                 filterByTag = viewModel::filterByTag,
-                modifier = Modifier.align(Alignment.CenterEnd)
+                entriesListFocusRequester = entriesListFocusRequester,
+                modifier = Modifier.align(Alignment.CenterEnd),
             )
         }
     }
