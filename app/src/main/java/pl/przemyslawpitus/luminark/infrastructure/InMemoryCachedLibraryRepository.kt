@@ -6,6 +6,7 @@ import pl.przemyslawpitus.luminark.domain.library.LibraryCache
 import pl.przemyslawpitus.luminark.domain.library.LibraryEntry
 import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryBuilder
+import pl.przemyslawpitus.luminark.domain.utils.LibraryStyleComparator
 import java.nio.file.Path
 
 class InMemoryCachedLibraryRepository(
@@ -32,7 +33,10 @@ class InMemoryCachedLibraryRepository(
         }
 
         val library = libraryBuilder.buildLibraryFrom(libraryRootPath)
-        libraryCache.save(library)
-        _entries.value = library.entries
+        val sortedLibrary = library.copy(
+            entries = library.entries.sortedWith(compareBy(LibraryStyleComparator) { it.name.name })
+        )
+        libraryCache.save(sortedLibrary)
+        _entries.value = sortedLibrary.entries
     }
 }

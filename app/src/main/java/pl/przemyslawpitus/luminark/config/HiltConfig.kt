@@ -1,7 +1,6 @@
 package pl.przemyslawpitus.luminark.config
 
 import android.content.Context
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,14 +15,23 @@ import pl.przemyslawpitus.luminark.domain.library.LibraryRepository
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryBuilder
 import pl.przemyslawpitus.luminark.domain.library.building.LibraryParser
 import pl.przemyslawpitus.luminark.domain.lumiDirectoryConfig.LumiDirectoryConfigProvider
+import pl.przemyslawpitus.luminark.domain.library.Library
 import pl.przemyslawpitus.luminark.domain.poster.ImageFilePosterProvider
 import pl.przemyslawpitus.luminark.infrastructure.InMemoryCachedLibraryRepository
 import pl.przemyslawpitus.luminark.infrastructure.libraryCache.LibraryJsonCache
+import pl.przemyslawpitus.luminark.infrastructure.mock.MockFileRepository
+import pl.przemyslawpitus.luminark.infrastructure.mock.MockLibraryRepository
+import pl.przemyslawpitus.luminark.infrastructure.mock.MockLumiDirectoryConfigProvider
+import pl.przemyslawpitus.luminark.infrastructure.mock.MockVideoPlayer
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbFileRepository
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLibraryBuilder
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbLumiDirectoryConfigFileReader
 import pl.przemyslawpitus.luminark.infrastructure.smb.SmbVideoPlayer
 import javax.inject.Singleton
+import java.nio.file.Path
+
+// Set to true to use in-memory mock data instead of a real SMB connection.
+const val USE_MOCK = true
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,28 +39,28 @@ object HiltConfig {
 
     @Provides
     @Singleton
-    suspend fun smbFileRepository(): SmbFileRepository {
-        val smbFileRepository = SmbFileRepository()
-        smbFileRepository.ensureConnected()
-        return smbFileRepository
+    fun fileRepository(): FileRepository {
+        if (USE_MOCK) return MockFileRepository()
+        val smb = SmbFileRepository()
+        return smb
+    }
+
+    @Provides
+    @Singleton
+    fun filesLister(fileRepository: FileRepository): FilesLister {
+        if (USE_MOCK) return fileRepository as MockFileRepository
+        return fileRepository as SmbFileRepository
     }
 
     @Provides
     @Singleton
     fun lumiDirectoryConfigProvider(
-        smbFileRepository: SmbFileRepository,
+        fileRepository: FileRepository,
     ): LumiDirectoryConfigProvider {
+        if (USE_MOCK) return MockLumiDirectoryConfigProvider()
         return SmbLumiDirectoryConfigFileReader(
-            smbFileRepository = smbFileRepository
+            smbFileRepository = fileRepository as SmbFileRepository,
         )
-    }
-
-    @Provides
-    @Singleton
-    fun filesLister(
-        smbFileRepository: SmbFileRepository,
-    ): FilesLister {
-        return smbFileRepository
     }
 
     @Provides
@@ -77,22 +85,32 @@ object HiltConfig {
     @Singleton
     fun libraryBuilder(
         libraryParser: LibraryParser,
-        smbFileRepository: SmbFileRepository,
+        fileRepository: FileRepository,
     ): LibraryBuilder {
+        if (USE_MOCK) {
+            // Not used when USE_MOCK is true (MockLibraryRepository bypasses builder),
+            // but Hilt still needs to resolve it. Return a no-op builder.
+            return object : LibraryBuilder {
+                override suspend fun buildLibraryFrom(rootLibraryPath: Path): Library {
+                    return Library(emptyList())
+                }
+            }
+        }
         return SmbLibraryBuilder(
-            smbFileRepository = smbFileRepository,
-            libraryParser = libraryParser
+            smbFileRepository = fileRepository as SmbFileRepository,
+            libraryParser = libraryParser,
         )
     }
 
     @Provides
     @Singleton
     fun videoPlayer(
-        smbFileRepository: SmbFileRepository,
         @ApplicationContext context: Context,
-    ): SmbVideoPlayer {
+        fileRepository: FileRepository,
+    ): VideoPlayer {
+        if (USE_MOCK) return MockVideoPlayer(context)
         return SmbVideoPlayer(
-            smbFileRepository = smbFileRepository,
+            smbFileRepository = fileRepository as SmbFileRepository,
             context = context,
         )
     }
@@ -102,19 +120,13 @@ object HiltConfig {
     fun libraryRepository(
         libraryBuilder: LibraryBuilder,
         libraryCache: LibraryCache,
+        @ApplicationContext context: Context,
     ): LibraryRepository {
+        if (USE_MOCK) return MockLibraryRepository(context)
         return InMemoryCachedLibraryRepository(
             libraryBuilder = libraryBuilder,
             libraryCache = libraryCache,
         )
-    }
-
-    @Provides
-    @Singleton
-    fun fileRepository(
-        smbFileRepository: SmbFileRepository,
-    ): FileRepository {
-        return smbFileRepository
     }
 
     @Provides
@@ -141,14 +153,4 @@ object HiltConfig {
             context = context,
         )
     }
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-abstract class BindingsModule {
-    @Binds
-    @Singleton
-    abstract fun bindVideoPlayer(
-        smbVideoPlayer: SmbVideoPlayer
-    ): VideoPlayer
 }
