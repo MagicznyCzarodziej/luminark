@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import pl.przemyslawpitus.luminark.domain.library.Name
+import pl.przemyslawpitus.luminark.ui.TestTags
 import pl.przemyslawpitus.luminark.ui.screens.LibraryScreen.EntriesListState
 
 data class ListEntryUiModel(
@@ -96,6 +98,7 @@ fun EntriesList(
                     }
                 },
                 onEntryClick = entry.onClick,
+                modifier = Modifier.testTag(TestTags.entryItem(index)),
             ) {
                 ListEntry(
                     name = entry.name,

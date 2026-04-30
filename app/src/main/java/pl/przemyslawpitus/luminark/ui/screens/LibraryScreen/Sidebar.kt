@@ -30,11 +30,13 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
+import pl.przemyslawpitus.luminark.ui.TestTags
 import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
 
 
@@ -60,6 +62,7 @@ fun Sidebar(
 
     Box(
         modifier = modifier
+            .testTag(TestTags.SIDEBAR)
             .width(300.dp)
             .graphicsLayer {
                 translationX =
@@ -94,6 +97,7 @@ fun Sidebar(
                 onClick = { rebuildLibrary() },
                 onExitSidebar = onExitSidebar,
                 isFirst = true,
+                index = 0,
             )
             Text(
                 "Tags",
@@ -104,17 +108,20 @@ fun Sidebar(
                 "All",
                 onClick = { filterByTag(null) },
                 onExitSidebar = onExitSidebar,
+                index = 1,
             )
             MenuItem(
                 "Anime",
                 onClick = { filterByTag("anime") },
                 onExitSidebar = onExitSidebar,
+                index = 2,
             )
             MenuItem(
                 "MCU",
                 onClick = { filterByTag("mcu") },
                 isLast = true,
                 onExitSidebar = onExitSidebar,
+                index = 3,
             )
         }
     }
@@ -127,11 +134,13 @@ private fun MenuItem(
     onExitSidebar: () -> Unit,
     isFirst: Boolean = false,
     isLast: Boolean = false,
+    index: Int = 0,
 ) {
     Text(
         text,
         color = Color.White,
         modifier = Modifier
+            .testTag(TestTags.sidebarItem(index))
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when (event.key) {

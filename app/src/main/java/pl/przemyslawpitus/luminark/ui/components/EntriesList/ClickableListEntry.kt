@@ -26,12 +26,13 @@ fun ClickableListEntry(
     isSelected: Boolean,
     onFocusChange: (Boolean) -> Unit,
     onEntryClick: () -> Unit,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .onFocusChanged { focusState ->

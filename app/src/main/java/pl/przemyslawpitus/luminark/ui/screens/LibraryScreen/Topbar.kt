@@ -28,10 +28,12 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
+import pl.przemyslawpitus.luminark.ui.TestTags
 
 @Composable
 fun TopBar(
@@ -61,6 +63,7 @@ fun TopBar(
         )
         Box(
             modifier = Modifier
+                .testTag(TestTags.topBarButton(0))
                 .focusProperties {
                     up = FocusRequester.Cancel
                     left = FocusRequester.Cancel
@@ -90,6 +93,7 @@ fun TopBar(
         }
         Box(
             modifier = Modifier
+                .testTag(TestTags.topBarButton(1))
                 .focusProperties {
                     up = FocusRequester.Cancel
                 }
@@ -118,6 +122,7 @@ fun TopBar(
         }
         Box(
             modifier = Modifier
+                .testTag(TestTags.topBarButton(2))
                 .focusProperties {
                     up = FocusRequester.Cancel
                     right = FocusRequester.Cancel

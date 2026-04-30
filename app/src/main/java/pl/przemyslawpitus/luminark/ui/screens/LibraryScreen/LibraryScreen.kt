@@ -41,6 +41,9 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -48,6 +51,7 @@ import androidx.tv.material3.Text
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import pl.przemyslawpitus.luminark.ui.TestTags
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.EntriesList
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.NameDisplayStrategy
@@ -181,6 +185,7 @@ fun LibraryScreen(
                 // Alphabet Column
                 LazyColumn(
                     modifier = Modifier
+                        .testTag(TestTags.LETTERS_COLUMN)
                         .height(300.dp)
                         .width(28.dp)
                         .padding(start = 8.dp)
@@ -225,6 +230,8 @@ fun LibraryScreen(
                                 contentPadding = PaddingValues(0.dp),
                                 interactionSource = interactionSource,
                                 modifier = Modifier
+                                    .testTag(TestTags.letterTag(index))
+                                    .semantics { selected = isActive }
                                     .focusRequester(letterFocusRequester)
                                     .heightIn(min = 1.dp)
                                     .background(
@@ -259,6 +266,7 @@ fun LibraryScreen(
                         entries = uiState.entries,
                         nameDisplayStrategy = NameDisplayStrategy.LIBRARY,
                         modifier = Modifier
+                            .testTag(TestTags.ENTRIES_LIST)
                             .padding(
                                 start = 16.dp,
                                 top = 16.dp,
