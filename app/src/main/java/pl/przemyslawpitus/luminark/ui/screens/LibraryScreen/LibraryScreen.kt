@@ -170,15 +170,17 @@ fun LibraryScreen(
         }
     }
 
-    /** Scroll the alphabet column to [index] and request focus on that letter. */
+    /** Scroll the alphabet column to [index] and request focus on that letter.
+     *  Negative index (e.g. no active letter found) falls back to the first letter. */
     fun scrollAndFocusLetter(index: Int) {
+        val safeIndex = maxOf(0, index)
         activeFocusJob.job?.cancel()
         activeFocusJob.job = scope.launch {
             val halfViewport = symbolsListState.layoutInfo.viewportSize.height / 2
-            symbolsListState.scrollToItem(index, -halfViewport)
+            symbolsListState.scrollToItem(safeIndex, -halfViewport)
             repeat(60) { attempt ->
                 delay(50)
-                val letter = symbols.getOrNull(index) ?: return@launch
+                val letter = symbols.getOrNull(safeIndex) ?: return@launch
                 val req = letterFocusRequesters[letter]
                 if (req != null) {
                     try { req.requestFocus(); return@launch } catch (_: Exception) {}
@@ -319,10 +321,7 @@ fun LibraryScreen(
                             )
                             // Left from entries: move focus to the matching letter in the alphabet
                             .dpadHandler(
-                                onLeft = action {
-                                    val letterIndex = if (activeLetterIndex >= 0) activeLetterIndex else 0
-                                    scrollAndFocusLetter(letterIndex)
-                                },
+                                onLeft = action { scrollAndFocusLetter(activeLetterIndex) },
                             )
                             .focusGroup(),
                         state = entriesListState
