@@ -52,14 +52,21 @@ fun EntriesList(
     nameDisplayStrategy: NameDisplayStrategy = NameDisplayStrategy.REGULAR,
     state: EntriesListState? = null
 ) {
+    // Survives recomposition via rememberSaveable. Tracks which entry had focus
+    // so it can be auto-focused when the list recomposes (e.g. after returning
+    // from another screen).
     var lastFocusedIndex by rememberSaveable { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
 
-    // Clamp lastFocusedIndex when the entries list shrinks (e.g. after filtering)
+    // When filtering shrinks the list, lastFocusedIndex could point beyond
+    // the new list bounds (e.g. was 40, but filtered list has 18 entries).
+    // Clamp to 0 to prevent scrollAndFocusEntry from targeting a non-existent item.
     if (entries.isNotEmpty() && lastFocusedIndex >= entries.size) {
         lastFocusedIndex = 0
     }
 
+    // Expose the LazyListState to EntriesListState so that scrollAndFocusEntry
+    // (in LibraryScreen) can scroll this list programmatically.
     SideEffect {
         state?.lazyListState = listState
     }
@@ -87,6 +94,12 @@ fun EntriesList(
         itemsIndexed(entries) { index, entry ->
             val focusRequester = remember { FocusRequester() }
 
+            // Register this entry's FocusRequester on the shared EntriesListState.
+            // Keyed on BOTH index and state — when filtering changes the entries,
+            // a new EntriesListState is created (via remember(uiState.entries)),
+            // and this effect must re-run to register on the new instance.
+            // Without the `state` key, the effect wouldn't re-run (same index),
+            // leaving the new state's focusRequesters map empty.
             DisposableEffect(index, state) {
                 state?.focusRequesters?.set(index, focusRequester)
                 onDispose { state?.focusRequesters?.remove(index) }
@@ -113,6 +126,8 @@ fun EntriesList(
                 )
             }
 
+            // Auto-focus the entry that matches lastFocusedIndex when it gets composed.
+            // This handles initial focus and restoring focus after recomposition.
             if (index == lastFocusedIndex) {
                 LaunchedEffect(Unit) {
                     focusRequester.requestFocus()

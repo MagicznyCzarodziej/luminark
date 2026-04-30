@@ -70,10 +70,16 @@ fun Sidebar(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
     var initializationComplete: Boolean by remember { mutableStateOf(false) }
     var focusState by remember { mutableStateOf<FocusState?>(null) }
+    /** FocusRequester for the entire sidebar Box (the focusGroup container). */
     val focusRequester = remember { FocusRequester() }
+    /** FocusRequester for the first menu item — used to override focusGroup's
+     *  default behavior of restoring focus to the last focused child. */
     val firstItemFocusRequester = remember { FocusRequester() }
+    /** Scroll state for the tags LazyColumn — reset to top when sidebar reopens. */
     val tagsListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    // On initial open, if the sidebar doesn't have focus yet, grab it.
+    // This handles the case where drawerState starts as Open.
     LaunchedEffect(key1 = drawerState.currentValue) {
         if (drawerState.currentValue == DrawerValue.Open && focusState?.hasFocus == false) {
             focusRequester.requestFocus()
@@ -101,14 +107,21 @@ fun Sidebar(
                 focusState = it
 
                 if (initializationComplete) {
+                    // Show/hide sidebar based on whether any child has focus
                     drawerState.setValue(if (it.hasFocus) DrawerValue.Open else DrawerValue.Closed)
 
+                    // When the sidebar gains focus from outside (wasOpen=false -> hasFocus=true):
+                    // 1. Reset the tags LazyColumn scroll to the top — otherwise the list
+                    //    stays scrolled to wherever the user left it last time
+                    // 2. Force focus to the first item — without this, focusGroup restores
+                    //    focus to the last focused child, which may be off-screen
                     if (it.hasFocus && !wasOpen) {
                         scope.launch { tagsListState.scrollToItem(0) }
                         firstItemFocusRequester.requestFocus()
                     }
                 }
             }
+            // focusGroup makes D-pad navigate between children (menu items)
             .focusGroup()
     ) {
         Column(
@@ -207,6 +220,8 @@ private fun MenuItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            // D-pad containment: Left/Right exit the sidebar, Up/Down blocked at edges.
+            // Returning true from onPreviewKeyEvent consumes the event (blocks it).
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when (event.key) {
@@ -214,8 +229,8 @@ private fun MenuItem(
                         onExitSidebar()
                         true
                     }
-                    Key.DirectionUp -> isFirst
-                    Key.DirectionDown -> isLast
+                    Key.DirectionUp -> isFirst   // block Up on first item
+                    Key.DirectionDown -> isLast  // block Down on last item
                     else -> false
                 }
             }

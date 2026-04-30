@@ -35,6 +35,18 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import pl.przemyslawpitus.luminark.ui.TestTags
 
+/**
+ * Filter buttons row (All / Films / Series).
+ *
+ * D-pad focus containment:
+ * - Up: blocked on all buttons (FocusRequester.Cancel) — nothing above the top bar
+ * - Left: blocked on the first button — prevents escaping left
+ * - Right: blocked on the last button — prevents escaping right
+ * - Down: intercepted via onPreviewKeyEvent to call [onNavigateDown],
+ *   which scrolls to and focuses the last focused entry in the list.
+ *   We can't rely on Compose's default spatial focus because the entries
+ *   list may be scrolled and the target entry may not be composed yet.
+ */
 @Composable
 fun TopBar(
     onFilterChanged: (EntriesFilter) -> Unit,
@@ -64,10 +76,12 @@ fun TopBar(
         Box(
             modifier = Modifier
                 .testTag(TestTags.topBarButton(0))
+                // FocusRequester.Cancel blocks focus movement in that direction
                 .focusProperties {
                     up = FocusRequester.Cancel
                     left = FocusRequester.Cancel
                 }
+                // Intercept Down to use custom scroll-and-focus instead of spatial navigation
                 .onPreviewKeyEvent { event ->
                     if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
                         onNavigateDown(); true

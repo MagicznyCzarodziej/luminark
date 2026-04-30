@@ -58,21 +58,42 @@ import pl.przemyslawpitus.luminark.ui.components.EntriesList.NameDisplayStrategy
 import pl.przemyslawpitus.luminark.ui.components.Poster.Poster
 import pl.przemyslawpitus.luminark.ui.navigation.Destination
 
+/**
+ * Holds the focus-navigation state for the entries list.
+ *
+ * Each composable entry registers its FocusRequester here via DisposableEffect,
+ * so that external components (TopBar, Sidebar, Letters) can programmatically
+ * scroll to and focus any entry by index.
+ *
+ * Recreated via remember(uiState.entries) whenever the entries list changes
+ * (e.g. after filtering), which resets focusRequesters and _focusedIndex.
+ */
 class EntriesListState(
     val entries: List<ListEntryUiModel>,
 ) {
+    /** Set by EntriesList via SideEffect — gives access to the LazyColumn scroll state. */
     internal var lazyListState: LazyListState? = null
+
+    /** Index of the currently focused entry. Used to restore focus after navigating away. */
     internal val _focusedIndex = mutableIntStateOf(0)
+
+    /**
+     * Map of entry index -> FocusRequester, populated by each visible entry's DisposableEffect.
+     * Only currently composed (on-screen) entries have entries here.
+     */
     internal val focusRequesters = mutableMapOf<Int, FocusRequester>()
 
+    /** The first letter of the currently focused entry's sort name (for letter-tracking). */
     val activeLetter: Char?
         get() = entries.getOrNull(_focusedIndex.intValue)
             ?.name?.sortName?.first()?.uppercaseChar()
 
+    /** Called by each entry's onFocusChanged to update the tracked index. */
     internal fun onEntryFocused(index: Int) {
         _focusedIndex.intValue = index
     }
 
+    /** Find the first entry whose sort name starts with the given letter. */
     fun findEntryIndexForLetter(char: Char): Int {
         return if (char == '#') 0
         else entries.indexOfFirst { it.name.sortName.startsWith(char, ignoreCase = true) }
@@ -94,6 +115,8 @@ fun LibraryScreen(
     val letterFocusRequesters = remember { mutableMapOf<Char, FocusRequester>() }
     var focusedLetterIndex by remember { mutableIntStateOf(-1) }
 
+    // Recreated when entries change (filter applied) — old focusRequesters are discarded,
+    // and DisposableEffect in EntriesList re-registers on the new instance.
     val entriesListState = remember(uiState.entries) {
         EntriesListState(uiState.entries)
     }
@@ -106,11 +129,27 @@ fun LibraryScreen(
         derivedStateOf { symbols.indexOf(activeLetter) }
     }
 
-    // Tracks the active focus-navigation coroutine so a newer request cancels stale ones
+    /**
+     * Cancels any in-flight focus coroutine before launching a new one.
+     * Without this, rapid D-pad inputs cause older retry loops to steal focus
+     * back to outdated targets (e.g. pressing Right then quickly Down would
+     * fight over which entry to focus).
+     */
     val activeFocusJob = remember { object { var job: Job? = null } }
 
     // ── Focus helpers ────────────────────────────────────────────────
 
+    /**
+     * Scroll the entries list to [index] and request focus on that entry.
+     *
+     * Uses index-2 for scrollToItem to prevent BringIntoView from nudging
+     * the list after focus lands (the focused item needs some items above it
+     * to be visible, otherwise Compose auto-scrolls to fully reveal it).
+     *
+     * The retry loop (60 x 50ms) handles the case where the target entry
+     * hasn't been composed yet after scrolling — LazyColumn composes items
+     * asynchronously, so the FocusRequester may not be registered immediately.
+     */
     fun scrollAndFocusEntry(index: Int) {
         activeFocusJob.job?.cancel()
         activeFocusJob.job = scope.launch {
@@ -132,6 +171,7 @@ fun LibraryScreen(
         }
     }
 
+    /** Scroll the alphabet column to [index] and request focus on that letter. */
     fun scrollAndFocusLetter(index: Int) {
         activeFocusJob.job?.cancel()
         activeFocusJob.job = scope.launch {
@@ -150,6 +190,10 @@ fun LibraryScreen(
 
     var previousActiveLetterIndex by remember { mutableIntStateOf(-1) }
 
+    // Auto-scroll the alphabet column to keep the active letter visible
+    // as the user scrolls through entries. The "changed" guard prevents
+    // re-animating when scrolling through multiple entries starting with
+    // the same letter (which would cause visible jittering).
     LaunchedEffect(activeLetterIndex) {
         if (activeLetterIndex < 0) return@LaunchedEffect
         if (activeLetterIndex == previousActiveLetterIndex) return@LaunchedEffect
@@ -183,6 +227,11 @@ fun LibraryScreen(
                     )
                 }
                 // Alphabet Column
+                //
+                // D-pad navigation rules:
+                // - Up/Down at edges: blocked (return true = consumed) to prevent focus escaping
+                // - Left: always blocked — nothing useful to the left of the alphabet
+                // - Right: return focus to the last focused entry in the list
                 LazyColumn(
                     modifier = Modifier
                         .testTag(TestTags.LETTERS_COLUMN)
@@ -258,6 +307,8 @@ fun LibraryScreen(
                 Column {
                     TopBar(
                         onFilterChanged = viewModel::filterEntries,
+                        // Called when user presses Down from a TopBar button —
+                        // returns focus to the last focused entry in the list.
                         onNavigateDown = {
                             scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
                         },
@@ -272,6 +323,7 @@ fun LibraryScreen(
                                 top = 16.dp,
                                 end = 16.dp,
                             )
+                            // Left from entries: move focus to the matching letter in the alphabet
                             .onPreviewKeyEvent { event ->
                                 if (event.type == KeyEventType.KeyDown
                                     && event.key == Key.DirectionLeft
@@ -286,10 +338,17 @@ fun LibraryScreen(
                     )
                 }
             }
+            // Sidebar is positioned as an overlay at the right edge.
+            // D-pad Right from entries does NOT spatially navigate to the sidebar
+            // because the sidebar Box shares the same x-region as the entries list.
+            // Instead, the sidebar captures focus when Compose's spatial search
+            // reaches the right edge on its own.
             Sidebar(
                 tags = uiState.tags,
                 rebuildLibrary = { viewModel.rebuildLibrary() },
                 filterByTag = viewModel::filterByTag,
+                // Called when user presses Left/Right from a sidebar item —
+                // returns focus to the last focused entry.
                 onExitSidebar = {
                     scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
                 },
