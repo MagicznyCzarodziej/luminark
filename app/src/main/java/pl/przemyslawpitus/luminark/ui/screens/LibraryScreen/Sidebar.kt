@@ -35,11 +35,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import pl.przemyslawpitus.luminark.ui.modifiers.action
+import pl.przemyslawpitus.luminark.ui.modifiers.block
+import pl.przemyslawpitus.luminark.ui.modifiers.dpadHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -220,20 +218,12 @@ private fun MenuItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            // D-pad containment: Left/Right exit the sidebar, Up/Down blocked at edges.
-            // Returning true from onPreviewKeyEvent consumes the event (blocks it).
-            .onPreviewKeyEvent { event ->
-                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                when (event.key) {
-                    Key.DirectionLeft, Key.DirectionRight -> {
-                        onExitSidebar()
-                        true
-                    }
-                    Key.DirectionUp -> isFirst   // block Up on first item
-                    Key.DirectionDown -> isLast  // block Down on last item
-                    else -> false
-                }
-            }
+            .dpadHandler(
+                onUp = if (isFirst) block() else null,
+                onDown = if (isLast) block() else null,
+                onLeft = action { onExitSidebar() },
+                onRight = action { onExitSidebar() },
+            )
             .onFocusChanged { isFocused = it.isFocused }
             .background(
                 color = if (isFocused) SidebarFocusedBg else Color.Transparent,

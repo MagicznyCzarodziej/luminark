@@ -36,11 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import pl.przemyslawpitus.luminark.ui.modifiers.action
+import pl.przemyslawpitus.luminark.ui.modifiers.block
+import pl.przemyslawpitus.luminark.ui.modifiers.blockWhen
+import pl.przemyslawpitus.luminark.ui.modifiers.dpadHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -228,29 +227,24 @@ fun LibraryScreen(
                 }
                 // Alphabet Column
                 //
-                // D-pad navigation rules:
-                // - Up/Down at edges: blocked (return true = consumed) to prevent focus escaping
-                // - Left: always blocked — nothing useful to the left of the alphabet
-                // - Right: return focus to the last focused entry in the list
+                // D-pad rules:
+                // - Left: blocked via focusProperties — nothing useful to the left
+                // - Up/Down at edges: blocked via onPreviewKeyEvent (conditional on position)
+                //   Note: focusProperties { up/down = Cancel } can't be used here because
+                //   it prevents LazyColumn from scrolling to reveal off-screen items above/below
+                // - Right: custom behavior (scroll to + focus the last focused entry)
                 LazyColumn(
                     modifier = Modifier
                         .testTag(TestTags.LETTERS_COLUMN)
                         .height(300.dp)
                         .width(28.dp)
                         .padding(start = 8.dp)
-                        .onPreviewKeyEvent { event ->
-                            if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                            when (event.key) {
-                                Key.DirectionUp -> focusedLetterIndex == 0
-                                Key.DirectionDown -> focusedLetterIndex == symbols.lastIndex
-                                Key.DirectionLeft -> true
-                                Key.DirectionRight -> {
-                                    scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
-                                    true
-                                }
-                                else -> false
-                            }
-                        }
+                        .dpadHandler(
+                            onLeft = block(),
+                            onUp = blockWhen { focusedLetterIndex == 0 },
+                            onDown = blockWhen { focusedLetterIndex == symbols.lastIndex },
+                            onRight = action { scrollAndFocusEntry(entriesListState._focusedIndex.intValue) },
+                        )
                         .focusGroup()
                         .align(Alignment.CenterVertically),
                     state = symbolsListState,
@@ -324,15 +318,12 @@ fun LibraryScreen(
                                 end = 16.dp,
                             )
                             // Left from entries: move focus to the matching letter in the alphabet
-                            .onPreviewKeyEvent { event ->
-                                if (event.type == KeyEventType.KeyDown
-                                    && event.key == Key.DirectionLeft
-                                ) {
+                            .dpadHandler(
+                                onLeft = action {
                                     val letterIndex = if (activeLetterIndex >= 0) activeLetterIndex else 0
                                     scrollAndFocusLetter(letterIndex)
-                                    true
-                                } else false
-                            }
+                                },
+                            )
                             .focusGroup(),
                         state = entriesListState
                     )

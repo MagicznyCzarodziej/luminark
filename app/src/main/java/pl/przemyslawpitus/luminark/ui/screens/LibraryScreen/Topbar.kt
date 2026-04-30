@@ -19,15 +19,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import pl.przemyslawpitus.luminark.ui.modifiers.action
+import pl.przemyslawpitus.luminark.ui.modifiers.block
+import pl.przemyslawpitus.luminark.ui.modifiers.dpadHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,17 +72,11 @@ fun TopBar(
         Box(
             modifier = Modifier
                 .testTag(TestTags.topBarButton(0))
-                // FocusRequester.Cancel blocks focus movement in that direction
-                .focusProperties {
-                    up = FocusRequester.Cancel
-                    left = FocusRequester.Cancel
-                }
-                // Intercept Down to use custom scroll-and-focus instead of spatial navigation
-                .onPreviewKeyEvent { event ->
-                    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
-                        onNavigateDown(); true
-                    } else false
-                }
+                .dpadHandler(
+                    onUp = block(),
+                    onLeft = block(),
+                    onDown = action { onNavigateDown() },
+                )
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.ALL else null
                 }
@@ -108,14 +98,10 @@ fun TopBar(
         Box(
             modifier = Modifier
                 .testTag(TestTags.topBarButton(1))
-                .focusProperties {
-                    up = FocusRequester.Cancel
-                }
-                .onPreviewKeyEvent { event ->
-                    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
-                        onNavigateDown(); true
-                    } else false
-                }
+                .dpadHandler(
+                    onUp = block(),
+                    onDown = action { onNavigateDown() },
+                )
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.FILMS else null
                 }
@@ -137,15 +123,11 @@ fun TopBar(
         Box(
             modifier = Modifier
                 .testTag(TestTags.topBarButton(2))
-                .focusProperties {
-                    up = FocusRequester.Cancel
-                    right = FocusRequester.Cancel
-                }
-                .onPreviewKeyEvent { event ->
-                    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
-                        onNavigateDown(); true
-                    } else false
-                }
+                .dpadHandler(
+                    onUp = block(),
+                    onRight = block(),
+                    onDown = action { onNavigateDown() },
+                )
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.SERIES else null
                 }
