@@ -75,6 +75,7 @@ class EntriesListState(
 
     /** Index of the currently focused entry. Used to restore focus after navigating away. */
     internal val _focusedIndex = mutableIntStateOf(0)
+    val focusedIndex: Int get() = _focusedIndex.intValue
 
     /**
      * Map of entry index -> FocusRequester, populated by each visible entry's DisposableEffect.
@@ -150,6 +151,8 @@ fun LibraryScreen(
      * asynchronously, so the FocusRequester may not be registered immediately.
      */
     fun scrollAndFocusEntry(index: Int) {
+        if (index < 0) return
+        entriesListState._focusedIndex.intValue = index
         activeFocusJob.job?.cancel()
         activeFocusJob.job = scope.launch {
             val listState = entriesListState.lazyListState ?: return@launch
@@ -188,6 +191,9 @@ fun LibraryScreen(
             }
         }
     }
+
+    /** Scroll to and focus the last focused entry (used when returning from letters/topbar/sidebar). */
+    fun focusCurrentEntry() = scrollAndFocusEntry(entriesListState.focusedIndex)
 
     var previousActiveLetterIndex by remember { mutableIntStateOf(-1) }
 
@@ -245,7 +251,7 @@ fun LibraryScreen(
                             onLeft = block(),
                             onUp = blockWhen { focusedLetterIndex == 0 },
                             onDown = blockWhen { focusedLetterIndex == symbols.lastIndex },
-                            onRight = action { scrollAndFocusEntry(entriesListState._focusedIndex.intValue) },
+                            onRight = action { focusCurrentEntry() },
                         )
                         .focusGroup()
                         .align(Alignment.CenterVertically),
@@ -267,10 +273,7 @@ fun LibraryScreen(
                             TextButton(
                                 onClick = {
                                     val entryIndex = entriesListState.findEntryIndexForLetter(letter)
-                                    if (entryIndex >= 0) {
-                                        entriesListState._focusedIndex.intValue = entryIndex
-                                        scrollAndFocusEntry(entryIndex)
-                                    }
+                                    scrollAndFocusEntry(entryIndex)
                                 },
                                 contentPadding = PaddingValues(0.dp),
                                 interactionSource = interactionSource,
@@ -305,9 +308,7 @@ fun LibraryScreen(
                         onFilterChanged = viewModel::filterEntries,
                         // Called when user presses Down from a TopBar button —
                         // returns focus to the last focused entry in the list.
-                        onNavigateDown = {
-                            scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
-                        },
+                        onNavigateDown = { focusCurrentEntry() },
                     )
                     EntriesList(
                         entries = uiState.entries,
@@ -339,9 +340,7 @@ fun LibraryScreen(
                 filterByTag = viewModel::filterByTag,
                 // Called when user presses Left/Right from a sidebar item —
                 // returns focus to the last focused entry.
-                onExitSidebar = {
-                    scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
-                },
+                onExitSidebar = { focusCurrentEntry() },
                 modifier = Modifier.align(Alignment.CenterEnd),
             )
         }
