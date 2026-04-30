@@ -23,13 +23,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ClickableListEntry(
     focusRequester: FocusRequester,
-    lastFocusedIndex: Int,
+    isSelected: Boolean,
     onFocusChange: (Boolean) -> Unit,
-    index: Int,
     onEntryClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val isSelected = lastFocusedIndex == index
     var isFocused by remember { mutableStateOf(false) }
 
     Column(

@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.tv.material3.Text
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,11 +56,9 @@ import pl.przemyslawpitus.luminark.ui.navigation.Destination
 
 class EntriesListState(
     val entries: List<ListEntryUiModel>,
-    private val coroutineScope: CoroutineScope
 ) {
     internal var lazyListState: LazyListState? = null
     internal val _focusedIndex = mutableIntStateOf(0)
-    internal val _pendingFocusIndex = mutableIntStateOf(-1)
     internal val focusRequesters = mutableMapOf<Int, FocusRequester>()
 
     val activeLetter: Char?
@@ -70,30 +67,6 @@ class EntriesListState(
 
     internal fun onEntryFocused(index: Int) {
         _focusedIndex.intValue = index
-    }
-
-    fun focusLastEntry(fallback: FocusRequester) {
-        val focusRequester = focusRequesters[_focusedIndex.intValue]
-        if (focusRequester != null) focusRequester.requestFocus()
-        else fallback.requestFocus()
-    }
-
-    fun scrollToLetter(char: Char) {
-        val index =
-            if (char == '#') 0
-            else {
-                entries.indexOfFirst {
-                    it.name.sortName.startsWith(char, ignoreCase = true)
-                }
-            }
-
-        if (index != -1) {
-            _pendingFocusIndex.intValue = index
-            coroutineScope.launch {
-                lazyListState?.scrollToItem(index)
-                focusRequesters[index]?.requestFocus()
-            }
-        }
     }
 
     fun findEntryIndexForLetter(char: Char): Int {
@@ -114,12 +87,11 @@ fun LibraryScreen(
     val scope = rememberCoroutineScope()
 
     val symbolsListState = rememberLazyListState()
-    val entriesListFocusRequester = remember { FocusRequester() }
     val letterFocusRequesters = remember { mutableMapOf<Char, FocusRequester>() }
     var focusedLetterIndex by remember { mutableIntStateOf(-1) }
 
     val entriesListState = remember(uiState.entries) {
-        EntriesListState(uiState.entries, scope)
+        EntriesListState(uiState.entries)
     }
 
     val librarySymbols = uiState.entries.map { it.name.sortName.first().uppercaseChar() }.distinct()
@@ -301,7 +273,6 @@ fun LibraryScreen(
                                     true
                                 } else false
                             }
-                            .focusRequester(entriesListFocusRequester)
                             .focusGroup(),
                         state = entriesListState
                     )

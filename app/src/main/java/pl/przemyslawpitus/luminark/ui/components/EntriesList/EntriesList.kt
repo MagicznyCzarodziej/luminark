@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -78,13 +79,15 @@ fun EntriesList(
     ) {
         itemsIndexed(entries) { index, entry ->
             val focusRequester = remember { FocusRequester() }
-            state?.focusRequesters?.set(index, focusRequester)
 
-            val pendingFocusIndex = state?._pendingFocusIndex?.intValue ?: -1
+            DisposableEffect(index) {
+                state?.focusRequesters?.set(index, focusRequester)
+                onDispose { state?.focusRequesters?.remove(index) }
+            }
 
             ClickableListEntry(
                 focusRequester = focusRequester,
-                lastFocusedIndex = lastFocusedIndex,
+                isSelected = lastFocusedIndex == index,
                 onFocusChange = { isFocused: Boolean ->
                     if (isFocused) {
                         lastFocusedIndex = index
@@ -92,7 +95,6 @@ fun EntriesList(
                         entry.onFocus()
                     }
                 },
-                index = index,
                 onEntryClick = entry.onClick,
             ) {
                 ListEntry(
@@ -103,7 +105,7 @@ fun EntriesList(
                 )
             }
 
-            if (index == lastFocusedIndex && pendingFocusIndex < 0) {
+            if (index == lastFocusedIndex) {
                 LaunchedEffect(Unit) {
                     focusRequester.requestFocus()
                 }
