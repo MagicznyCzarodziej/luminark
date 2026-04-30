@@ -46,6 +46,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.tv.material3.Text
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.EntriesList
 import pl.przemyslawpitus.luminark.ui.components.EntriesList.ListEntryUiModel
@@ -93,6 +95,11 @@ class EntriesListState(
             }
         }
     }
+
+    fun findEntryIndexForLetter(char: Char): Int {
+        return if (char == '#') 0
+        else entries.indexOfFirst { it.name.sortName.startsWith(char, ignoreCase = true) }
+    }
 }
 
 
@@ -123,8 +130,54 @@ fun LibraryScreen(
         derivedStateOf { symbols.indexOf(activeLetter) }
     }
 
+    // Tracks the active focus-navigation coroutine so a newer request cancels stale ones
+    val activeFocusJob = remember { object { var job: Job? = null } }
+
+    // ── Focus helpers ────────────────────────────────────────────────
+
+    fun scrollAndFocusEntry(index: Int) {
+        activeFocusJob.job?.cancel()
+        activeFocusJob.job = scope.launch {
+            val listState = entriesListState.lazyListState ?: return@launch
+            val isVisible = listState.layoutInfo.visibleItemsInfo.any { it.index == index }
+            if (!isVisible) {
+                listState.scrollToItem(maxOf(0, index - 2))
+            }
+            entriesListState.focusRequesters[index]?.let { req ->
+                try { req.requestFocus(); return@launch } catch (_: Exception) {}
+            }
+            repeat(60) { attempt ->
+                delay(50)
+                val req = entriesListState.focusRequesters[index]
+                if (req != null) {
+                    try { req.requestFocus(); return@launch } catch (_: Exception) {}
+                }
+            }
+        }
+    }
+
+    fun scrollAndFocusLetter(index: Int) {
+        activeFocusJob.job?.cancel()
+        activeFocusJob.job = scope.launch {
+            val halfViewport = symbolsListState.layoutInfo.viewportSize.height / 2
+            symbolsListState.scrollToItem(index, -halfViewport)
+            repeat(60) { attempt ->
+                delay(50)
+                val letter = symbols.getOrNull(index) ?: return@launch
+                val req = letterFocusRequesters[letter]
+                if (req != null) {
+                    try { req.requestFocus(); return@launch } catch (_: Exception) {}
+                }
+            }
+        }
+    }
+
+    var previousActiveLetterIndex by remember { mutableIntStateOf(-1) }
+
     LaunchedEffect(activeLetterIndex) {
         if (activeLetterIndex < 0) return@LaunchedEffect
+        if (activeLetterIndex == previousActiveLetterIndex) return@LaunchedEffect
+        previousActiveLetterIndex = activeLetterIndex
         val halfViewport = symbolsListState.layoutInfo.viewportSize.height / 2
         symbolsListState.animateScrollToItem(activeLetterIndex, -halfViewport)
     }
@@ -164,10 +217,9 @@ fun LibraryScreen(
                             when (event.key) {
                                 Key.DirectionUp -> focusedLetterIndex == 0
                                 Key.DirectionDown -> focusedLetterIndex == symbols.lastIndex
+                                Key.DirectionLeft -> true
                                 Key.DirectionRight -> {
-                                    entriesListState.focusLastEntry(
-                                        fallback = entriesListFocusRequester,
-                                    )
+                                    scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
                                     true
                                 }
                                 else -> false
@@ -192,7 +244,11 @@ fun LibraryScreen(
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                             TextButton(
                                 onClick = {
-                                    entriesListState.scrollToLetter(letter)
+                                    val entryIndex = entriesListState.findEntryIndexForLetter(letter)
+                                    if (entryIndex >= 0) {
+                                        entriesListState._focusedIndex.intValue = entryIndex
+                                        scrollAndFocusEntry(entryIndex)
+                                    }
                                 },
                                 contentPadding = PaddingValues(0.dp),
                                 interactionSource = interactionSource,
@@ -223,7 +279,9 @@ fun LibraryScreen(
                 Column {
                     TopBar(
                         onFilterChanged = viewModel::filterEntries,
-                        exitFocusRequester = entriesListFocusRequester,
+                        onNavigateDown = {
+                            scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
+                        },
                     )
                     EntriesList(
                         entries = uiState.entries,
@@ -238,22 +296,8 @@ fun LibraryScreen(
                                 if (event.type == KeyEventType.KeyDown
                                     && event.key == Key.DirectionLeft
                                 ) {
-                                    activeLetter?.let { letter ->
-                                        val letterIndex = symbols.indexOf(letter)
-                                        if (letterIndex >= 0) {
-                                            scope.launch {
-                                                val halfViewport =
-                                                    symbolsListState.layoutInfo
-                                                        .viewportSize.height / 2
-                                                symbolsListState.scrollToItem(
-                                                    letterIndex,
-                                                    -halfViewport,
-                                                )
-                                                letterFocusRequesters[letter]
-                                                    ?.requestFocus()
-                                            }
-                                        }
-                                    }
+                                    val letterIndex = if (activeLetterIndex >= 0) activeLetterIndex else 0
+                                    scrollAndFocusLetter(letterIndex)
                                     true
                                 } else false
                             }
@@ -267,9 +311,7 @@ fun LibraryScreen(
                 rebuildLibrary = { viewModel.rebuildLibrary() },
                 filterByTag = viewModel::filterByTag,
                 onExitSidebar = {
-                    entriesListState.focusLastEntry(
-                        fallback = entriesListFocusRequester,
-                    )
+                    scrollAndFocusEntry(entriesListState._focusedIndex.intValue)
                 },
                 modifier = Modifier.align(Alignment.CenterEnd),
             )

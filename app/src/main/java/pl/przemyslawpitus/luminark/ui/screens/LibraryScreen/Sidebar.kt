@@ -93,6 +93,7 @@ fun Sidebar(
                 "Rebuild the library",
                 onClick = { rebuildLibrary() },
                 onExitSidebar = onExitSidebar,
+                isFirst = true,
             )
             Text(
                 "Tags",
@@ -124,6 +125,7 @@ private fun MenuItem(
     text: String,
     onClick: () -> Unit,
     onExitSidebar: () -> Unit,
+    isFirst: Boolean = false,
     isLast: Boolean = false,
 ) {
     Text(
@@ -137,6 +139,7 @@ private fun MenuItem(
                         onExitSidebar()
                         true
                     }
+                    Key.DirectionUp -> isFirst
                     Key.DirectionDown -> isLast
                     else -> false
                 }

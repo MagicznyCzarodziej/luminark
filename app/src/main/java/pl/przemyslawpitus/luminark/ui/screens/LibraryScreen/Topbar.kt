@@ -23,6 +23,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Icon
@@ -31,7 +36,7 @@ import androidx.tv.material3.Text
 @Composable
 fun TopBar(
     onFilterChanged: (EntriesFilter) -> Unit,
-    exitFocusRequester: FocusRequester,
+    onNavigateDown: () -> Unit,
 ) {
     var focusedFilter by remember {
         mutableStateOf<EntriesFilter?>(null)
@@ -59,7 +64,11 @@ fun TopBar(
                 .focusProperties {
                     up = FocusRequester.Cancel
                     left = FocusRequester.Cancel
-                    down = exitFocusRequester
+                }
+                .onPreviewKeyEvent { event ->
+                    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
+                        onNavigateDown(); true
+                    } else false
                 }
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.ALL else null
@@ -83,7 +92,11 @@ fun TopBar(
             modifier = Modifier
                 .focusProperties {
                     up = FocusRequester.Cancel
-                    down = exitFocusRequester
+                }
+                .onPreviewKeyEvent { event ->
+                    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
+                        onNavigateDown(); true
+                    } else false
                 }
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.FILMS else null
@@ -108,7 +121,11 @@ fun TopBar(
                 .focusProperties {
                     up = FocusRequester.Cancel
                     right = FocusRequester.Cancel
-                    down = exitFocusRequester
+                }
+                .onPreviewKeyEvent { event ->
+                    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
+                        onNavigateDown(); true
+                    } else false
                 }
                 .onFocusChanged {
                     focusedFilter = if (it.isFocused) EntriesFilter.SERIES else null
