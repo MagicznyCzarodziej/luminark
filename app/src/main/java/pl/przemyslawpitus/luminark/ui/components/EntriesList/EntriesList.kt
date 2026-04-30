@@ -55,6 +55,11 @@ fun EntriesList(
     var lastFocusedIndex by rememberSaveable { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
 
+    // Clamp lastFocusedIndex when the entries list shrinks (e.g. after filtering)
+    if (entries.isNotEmpty() && lastFocusedIndex >= entries.size) {
+        lastFocusedIndex = 0
+    }
+
     SideEffect {
         state?.lazyListState = listState
     }
@@ -82,7 +87,7 @@ fun EntriesList(
         itemsIndexed(entries) { index, entry ->
             val focusRequester = remember { FocusRequester() }
 
-            DisposableEffect(index) {
+            DisposableEffect(index, state) {
                 state?.focusRequesters?.set(index, focusRequester)
                 onDispose { state?.focusRequesters?.remove(index) }
             }

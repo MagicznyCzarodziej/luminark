@@ -287,6 +287,7 @@ fun LibraryScreen(
                 }
             }
             Sidebar(
+                tags = uiState.tags,
                 rebuildLibrary = { viewModel.rebuildLibrary() },
                 filterByTag = viewModel::filterByTag,
                 onExitSidebar = {

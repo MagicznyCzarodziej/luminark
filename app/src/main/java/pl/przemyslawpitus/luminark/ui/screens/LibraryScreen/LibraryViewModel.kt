@@ -29,6 +29,7 @@ import javax.inject.Inject
 
 data class LibraryUiState(
     val entries: List<ListEntryUiModel> = emptyList(),
+    val tags: List<String> = emptyList(),
     val isLoading: Boolean = true,
 )
 
@@ -86,6 +87,13 @@ class LibraryViewModel @Inject constructor(
     }
 
     private fun mapToUiState(entries: List<LibraryEntry>, filter: EntriesFilter, tagFilter: String?): LibraryUiState {
+        val allTags = entries
+            .filterIsInstance<Taggable>()
+            .flatMap { it.tags }
+            .map { it.lowercase() }
+            .distinct()
+            .sorted()
+
         return LibraryUiState(
             entries = entries
                 .filter { entry ->
@@ -104,6 +112,7 @@ class LibraryViewModel @Inject constructor(
                         onEntryFocus = ::onEntryFocused
                     )
                 },
+            tags = allTags,
             isLoading = false,
         )
     }

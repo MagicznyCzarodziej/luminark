@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +44,7 @@ import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
 
 @Composable
 fun Sidebar(
+    tags: List<String>,
     rebuildLibrary: () -> Unit,
     filterByTag: (tag: String?) -> Unit,
     onExitSidebar: () -> Unit,
@@ -97,6 +100,7 @@ fun Sidebar(
                 onClick = { rebuildLibrary() },
                 onExitSidebar = onExitSidebar,
                 isFirst = true,
+                isLast = tags.isEmpty(),
                 index = 0,
             )
             Text(
@@ -104,25 +108,29 @@ fun Sidebar(
                 color = Color.Gray,
                 fontSize = 10.sp,
             )
-            MenuItem(
-                "All",
-                onClick = { filterByTag(null) },
-                onExitSidebar = onExitSidebar,
-                index = 1,
-            )
-            MenuItem(
-                "Anime",
-                onClick = { filterByTag("anime") },
-                onExitSidebar = onExitSidebar,
-                index = 2,
-            )
-            MenuItem(
-                "MCU",
-                onClick = { filterByTag("mcu") },
-                isLast = true,
-                onExitSidebar = onExitSidebar,
-                index = 3,
-            )
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f),
+            ) {
+                item {
+                    MenuItem(
+                        "All",
+                        onClick = { filterByTag(null) },
+                        onExitSidebar = onExitSidebar,
+                        isLast = tags.isEmpty(),
+                        index = 1,
+                    )
+                }
+                itemsIndexed(tags) { tagIndex, tag ->
+                    MenuItem(
+                        tag.replaceFirstChar { it.uppercase() },
+                        onClick = { filterByTag(tag) },
+                        onExitSidebar = onExitSidebar,
+                        isLast = tagIndex == tags.lastIndex,
+                        index = tagIndex + 2,
+                    )
+                }
+            }
         }
     }
 }
