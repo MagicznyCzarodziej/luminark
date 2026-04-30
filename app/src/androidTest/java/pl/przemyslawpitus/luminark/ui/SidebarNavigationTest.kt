@@ -1,5 +1,7 @@
 package pl.przemyslawpitus.luminark.ui
 
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Test
@@ -44,5 +46,28 @@ class SidebarNavigationTest : BaseTvNavigationTest() {
 
         dpadDown()
         assertFocused(TestTags.sidebarItem(2))
+    }
+
+    @Test
+    fun `reopening sidebar after scrolling resets scroll and focuses first item`() {
+        openSidebar()
+
+        // Scroll to the bottom of the tag list
+        dpadDown(13) // 0=Rebuild, 1=All, 2..13=12 tags → last tag is sidebarItem(13)
+        assertFocused(TestTags.sidebarItem(13))
+
+        // Close sidebar
+        dpadLeft()
+        waitForAnyEntryFocused()
+
+        // Reopen sidebar — should be scrolled to top with first item focused and visible
+        openSidebar()
+        assertFocused(TestTags.sidebarItem(0))
+        rule.onNodeWithTag(TestTags.sidebarItem(0)).assertIsDisplayed()
+
+        // Pressing down should go to the next visible item without a scroll jump
+        dpadDown()
+        assertFocused(TestTags.sidebarItem(1))
+        rule.onNodeWithTag(TestTags.sidebarItem(1)).assertIsDisplayed()
     }
 }

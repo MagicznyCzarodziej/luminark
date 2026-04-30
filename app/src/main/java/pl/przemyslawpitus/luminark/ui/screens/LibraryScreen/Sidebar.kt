@@ -6,21 +6,29 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
@@ -33,13 +41,22 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.DrawerValue
+import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
+import kotlinx.coroutines.launch
 import pl.przemyslawpitus.luminark.ui.TestTags
-import pl.przemyslawpitus.luminark.ui.modifiers.focusableBackground
+
+private val SidebarBackground = Color(0xFF0D0E1F)
+private val SidebarFocusedBg = Color(0xFF1A2367)
+private val SidebarDivider = Color(0xFF1A1C30)
+private val SidebarLabelColor = Color(0xFF6B6F8A)
+private val SidebarTextColor = Color(0xFFD0D3E3)
+private val SidebarFocusedTextColor = Color.White
 
 
 @Composable
@@ -55,29 +72,28 @@ fun Sidebar(
     var focusState by remember { mutableStateOf<FocusState?>(null) }
     val focusRequester = remember { FocusRequester() }
     val firstItemFocusRequester = remember { FocusRequester() }
+    val tagsListState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = drawerState.currentValue) {
         if (drawerState.currentValue == DrawerValue.Open && focusState?.hasFocus == false) {
-            // used to grab focus if the drawer state is set to Open on start.
             focusRequester.requestFocus()
         }
-
         initializationComplete = true
     }
 
     Box(
         modifier = modifier
             .testTag(TestTags.SIDEBAR)
-            .width(300.dp)
+            .width(280.dp)
             .graphicsLayer {
                 translationX =
                     if (drawerState.currentValue == DrawerValue.Closed) {
-                        300.dp.toPx()
+                        280.dp.toPx()
                     } else {
                         0f
                     }
             }
-            .background(Color(0xFF0B0C1D))
-            .shadow(elevation = 2.dp)
+            .background(SidebarBackground)
             .focusRequester(focusRequester)
             .fillMaxHeight()
             .onFocusChanged {
@@ -87,8 +103,8 @@ fun Sidebar(
                 if (initializationComplete) {
                     drawerState.setValue(if (it.hasFocus) DrawerValue.Open else DrawerValue.Closed)
 
-                    // When sidebar gains focus from outside, always reset to the first item
                     if (it.hasFocus && !wasOpen) {
+                        scope.launch { tagsListState.scrollToItem(0) }
                         firstItemFocusRequester.requestFocus()
                     }
                 }
@@ -98,31 +114,56 @@ fun Sidebar(
         Column(
             Modifier
                 .fillMaxHeight()
-                .padding(16.dp),
+                .padding(start = 20.dp, end = 16.dp, top = 24.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // ── Actions section ──────────────────────────────────────
             MenuItem(
-                "Rebuild the library",
+                text = "Rebuild library",
                 onClick = { rebuildLibrary() },
                 onExitSidebar = onExitSidebar,
                 isFirst = true,
                 isLast = tags.isEmpty(),
                 index = 0,
                 focusRequester = firstItemFocusRequester,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = SidebarLabelColor,
+                    )
+                },
             )
+
+            // ── Divider ─────────────────────────────────────────────
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(SidebarDivider)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Tags section ────────────────────────────────────────
             Text(
-                "Tags",
-                color = Color.Gray,
-                fontSize = 10.sp,
+                "TAGS",
+                color = SidebarLabelColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.5.sp,
+                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp),
             )
+
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                state = tagsListState,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.weight(1f),
             ) {
                 item {
                     MenuItem(
-                        "All",
+                        text = "All",
                         onClick = { filterByTag(null) },
                         onExitSidebar = onExitSidebar,
                         isLast = tags.isEmpty(),
@@ -131,7 +172,7 @@ fun Sidebar(
                 }
                 itemsIndexed(tags) { tagIndex, tag ->
                     MenuItem(
-                        tag.replaceFirstChar { it.uppercase() },
+                        text = tag.replaceFirstChar { it.uppercase() },
                         onClick = { filterByTag(tag) },
                         onExitSidebar = onExitSidebar,
                         isLast = tagIndex == tags.lastIndex,
@@ -152,16 +193,20 @@ private fun MenuItem(
     isLast: Boolean = false,
     index: Int = 0,
     focusRequester: FocusRequester? = null,
+    icon: @Composable (() -> Unit)? = null,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+
     var modifier = Modifier
         .testTag(TestTags.sidebarItem(index))
     if (focusRequester != null) {
         modifier = modifier.focusRequester(focusRequester)
     }
-    Text(
-        text,
-        color = Color.White,
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
+            .fillMaxWidth()
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when (event.key) {
@@ -174,12 +219,22 @@ private fun MenuItem(
                     else -> false
                 }
             }
-            .focusableBackground(
-                unfocusedColor = Color.Transparent,
-                focusedColor = Color(0xFF1A2367),
-                shape = RoundedCornerShape(4.dp)
+            .onFocusChanged { isFocused = it.isFocused }
+            .background(
+                color = if (isFocused) SidebarFocusedBg else Color.Transparent,
+                shape = RoundedCornerShape(6.dp)
             )
             .clickable { onClick() }
-            .padding(4.dp)
-    )
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        if (icon != null) {
+            icon()
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+        Text(
+            text,
+            color = if (isFocused) SidebarFocusedTextColor else SidebarTextColor,
+            fontSize = 15.sp,
+        )
+    }
 }
