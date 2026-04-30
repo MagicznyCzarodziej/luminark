@@ -54,6 +54,7 @@ fun Sidebar(
     var initializationComplete: Boolean by remember { mutableStateOf(false) }
     var focusState by remember { mutableStateOf<FocusState?>(null) }
     val focusRequester = remember { FocusRequester() }
+    val firstItemFocusRequester = remember { FocusRequester() }
     LaunchedEffect(key1 = drawerState.currentValue) {
         if (drawerState.currentValue == DrawerValue.Open && focusState?.hasFocus == false) {
             // used to grab focus if the drawer state is set to Open on start.
@@ -80,10 +81,16 @@ fun Sidebar(
             .focusRequester(focusRequester)
             .fillMaxHeight()
             .onFocusChanged {
+                val wasOpen = focusState?.hasFocus == true
                 focusState = it
 
                 if (initializationComplete) {
                     drawerState.setValue(if (it.hasFocus) DrawerValue.Open else DrawerValue.Closed)
+
+                    // When sidebar gains focus from outside, always reset to the first item
+                    if (it.hasFocus && !wasOpen) {
+                        firstItemFocusRequester.requestFocus()
+                    }
                 }
             }
             .focusGroup()
@@ -102,6 +109,7 @@ fun Sidebar(
                 isFirst = true,
                 isLast = tags.isEmpty(),
                 index = 0,
+                focusRequester = firstItemFocusRequester,
             )
             Text(
                 "Tags",
@@ -143,12 +151,17 @@ private fun MenuItem(
     isFirst: Boolean = false,
     isLast: Boolean = false,
     index: Int = 0,
+    focusRequester: FocusRequester? = null,
 ) {
+    var modifier = Modifier
+        .testTag(TestTags.sidebarItem(index))
+    if (focusRequester != null) {
+        modifier = modifier.focusRequester(focusRequester)
+    }
     Text(
         text,
         color = Color.White,
-        modifier = Modifier
-            .testTag(TestTags.sidebarItem(index))
+        modifier = modifier
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                 when (event.key) {
